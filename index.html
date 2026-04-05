@@ -511,7 +511,7 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const APP_VERSION = 'v1.0'; 
+        const APP_VERSION = 'v3.5'; 
 
         const wx = {
             getStorageSync: (key) => { const item = localStorage.getItem(key); return item ? JSON.parse(item) : null; },
@@ -1196,10 +1196,10 @@
                     const todayStr = new Date().toLocaleDateString('en-CA'); 
 
                     let existingCards = wx.getStorageSync('myCards') || [];
-                    const existingWordSet = new Set(existingCards.map(card => card.word));
                     
                     let uniqueNewCards = [];
                     let forceUpdatedWordsList = []; 
+                    let meaningUpdatedWordsList = []; // 记录由于释义补充被更新的单词
                     let duplicateCount = 0;
                     let updateCount = 0; 
                     
@@ -1227,7 +1227,7 @@
                             wordPart = wordPart.slice(0, -1).trim();
                         }
 
-                        let wordToSave = wordPart.replace(/\n/g, NEWLINE_REPLACEMENT); // 实际上由于 split('\n')，这里不再有 \n
+                        let wordToSave = wordPart.replace(/\n/g, NEWLINE_REPLACEMENT);
 
                         // 批量内部查重检测（单次输入中重复的，只保留第一次）
                         if (batchInputMap.has(wordToSave)) {
@@ -1246,18 +1246,28 @@
                             }
                             uniqueNewCards.push({ word: wordToSave, meaning: meaningPart, pastday: pastday, createDate: createDate });
                         } else {
-                            // 全局查重检测：如果已在库中，无论是释义不同，都视为重复，直接丢弃
-                            if (existingWordSet.has(wordToSave)) {
-                                duplicateCount++;
+                            // 全局查重与补充释义检测
+                            let existingCard = existingCards.find(c => c.word === wordToSave);
+                            
+                            if (existingCard) {
+                                // 如果库中该单词释义为空，且本次输入释义不为空，则补充释义
+                                if ((!existingCard.meaning || existingCard.meaning.trim() === '') && meaningPart.trim() !== '') {
+                                    existingCard.meaning = meaningPart;
+                                    updateCount++;
+                                    meaningUpdatedWordsList.push({ word: wordToSave, meaning: meaningPart });
+                                } else {
+                                    // 已存在且无需补充释义，视为完全重复
+                                    duplicateCount++;
+                                }
                             } else {
+                                // 库中不存在，作为新卡片加入
                                 uniqueNewCards.push({ word: wordToSave, meaning: meaningPart, pastday: pastday, createDate: createDate });
-                                existingWordSet.add(wordToSave); // 添加到 set 中防止漏网
                             }
                         }
                     });
 
                     if (uniqueNewCards.length > 0 || updateCount > 0) {
-                        // 合并过滤后的老卡片和全新的卡片
+                        // 合并过滤/修改后的老卡片和全新的卡片
                         let updatedCards = existingCards.concat(uniqueNewCards);
                         wx.setStorageSync('myCards', updatedCards);
 
@@ -1272,12 +1282,24 @@
                         wx.setStorageSync('todayword', app.page1.data.todayword);
                         wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
 
-                        // 强力清理旧副本的数据
+                        // 强力清理旧副本的数据 (应对被 forceUpdate 完全重置的卡片)
                         if (forceUpdatedWordsList.length > 0) {
                             forceUpdatedWordsList.forEach(word => {
                                 app.page1.data.allword1 = app.page1.data.allword1.filter(c => c.word !== word);
                                 app.page1.data.todayword1 = app.page1.data.todayword1.filter(c => c.word !== word);
                                 app.page1.data.todayNewWord1 = app.page1.data.todayNewWord1.filter(c => c.word !== word);
+                            });
+                        }
+                        
+                        // 将新增的释义同步到当轮的复习副本中，避免用户切过去抽卡时还是旧的空状态
+                        if (meaningUpdatedWordsList.length > 0) {
+                            meaningUpdatedWordsList.forEach(updateItem => {
+                                let aw1 = app.page1.data.allword1.find(c => c.word === updateItem.word);
+                                if (aw1) aw1.meaning = updateItem.meaning;
+                                let tw1 = app.page1.data.todayword1.find(c => c.word === updateItem.word);
+                                if (tw1) tw1.meaning = updateItem.meaning;
+                                let tnw1 = app.page1.data.todayNewWord1.find(c => c.word === updateItem.word);
+                                if (tnw1) tnw1.meaning = updateItem.meaning;
                             });
                         }
 
@@ -1308,7 +1330,7 @@
 
                         let statusText = [];
                         if (uniqueNewCards.length > 0) statusText.push(`新增 ${uniqueNewCards.length} 条`);
-                        if (updateCount > 0) statusText.push(`更新复习 ${updateCount} 条`);
+                        if (updateCount > 0) statusText.push(`更新 ${updateCount} 条`);
 
                         this.elements.saveStatus.textContent = statusText.join('，') + '!';
                         
