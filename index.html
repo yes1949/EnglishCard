@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.0';</script>
+    <script>const APP_VERSION = 'v1.10';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -84,8 +84,9 @@
         /* --- 页面3 (回顾) --- */
         #page3 { align-items: center; justify-content: flex-start; padding-top: 100px; gap: 20px;}
         .spell-top-bar { display: flex; width: 100%; gap: 10px; justify-content: space-between; }
-        .spell-btn-top { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; }
-        .spell-btn-top.active { background-color: #007AFF; color: #fff;}
+        .spell-select-btn { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; outline: none; font-size: 14px; }
+        .spell-btn-top { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; font-size: 14px;}
+        .spell-btn-top.active, .spell-select-btn.active { background-color: #007AFF; color: #fff;}
         .spell-meaning-area { width: 100%; min-height: 40px; text-align: center; font-size: 16px; color: #555; word-wrap: break-word; padding: 10px; box-sizing: border-box;}
         .spell-hint-area { width: 100%; height: 30px; text-align: center; font-size: 20px; font-weight: bold; color: #e74c3c; line-height: 30px; }
         .spell-input-line { width: 100%; border: none; border-bottom: 2px solid #333; background: transparent; font-size: 24px; text-align: center; padding: 10px 5px; outline: none; }
@@ -95,17 +96,12 @@
         .spell-bottom-bar { display: flex; width: 100%; gap: 15px; margin-top: 30px; }
         .spell-btn-bot { flex: 1; height: 45px; background-color: #f0f0f0; border: none; border-radius: 25px; font-weight: bold; color: #333; cursor: pointer; }
         
-        .mode-select-dialog { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 80vw; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: none; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 10001; }
-        .mode-select-dialog button { margin-bottom: 10px; padding: 15px; font-size: 16px; border: none; background: #eee; border-radius: 10px; font-weight: bold;}
-        .mode-select-dialog button:last-child { margin-bottom: 0; }
-
         /* --- 页面4 (已标记) --- */
         #page4 { justify-content: flex-start; align-items: center; }
         .marked-words-container { display: flex; flex-wrap: wrap; gap: 2.67vw; justify-content: center; width: 100%; padding-bottom: calc(15vw + var(--safe-area-bottom)); }
         .marked-word { display: inline-flex; justify-content: center; align-items: center; padding: 1.87vw 3.2vw; font-size: 4.27vw; border-radius: 5.33vw; background-color: #00bcd4; color: white; user-select: text; cursor: pointer; white-space: nowrap; box-sizing: border-box; transition: 0.3s; }
         .marked-word.selected { background-color: #f39c12; transform: scale(1.05); box-shadow: 0 0.53vw 1.6vw rgba(0, 0, 0, 0.1); }
         .no-marked { font-size: 3.73vw; color: #999; text-align: center; padding-bottom: calc(15vw + var(--safe-area-bottom)); width: 100%;}
-        .page4-top-action { width: 100%; display: flex; justify-content: center; margin: 15px 0 25px 0; }
         .page4-action-container { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 80%; max-width: 80vw; z-index: 999; display: none; gap: 15px; padding: 20px 0; padding-bottom: calc(20px + var(--safe-area-bottom)); }
 
         /* --- 页面5 (展馆) --- */
@@ -179,7 +175,9 @@
 
     <div id="page3" class="page-container">
         <div class="spell-top-bar">
-            <button id="spellSelectBtn" class="spell-btn-top">选择</button>
+            <select id="spellSelectBtn" class="spell-select-btn">
+                <option value="" disabled selected>选择</option>
+            </select>
             <button id="spellReviewBtn" class="spell-btn-top">复习 (0)</button>
             <button id="spellErrorBtn" class="spell-btn-top">错题</button>
         </div>
@@ -192,25 +190,12 @@
         </div>
         <div class="spell-bottom-bar">
             <button id="spellRestartBtn" class="spell-btn-bot">重来</button>
+            <button id="copyEmptyMeaningBtnPage3" class="spell-btn-bot">无义</button>
             <button id="spellTravelBtnPage3" class="spell-btn-bot">穿越</button>
-        </div>
-        
-        <div id="modeSelectMask" class="dialog-mask" style="display: none;" onclick="document.getElementById('modeSelectMask').style.display='none'">
-            <div class="mode-select-dialog" onclick="event.stopPropagation()">
-                <button data-mode="A">模式 A (全部单词)</button>
-                <button data-mode="0">模式 0</button>
-                <button data-mode="1">模式 1</button>
-                <button data-mode="-1">模式 -1</button>
-                <button data-mode="E">模式 E (全量错题本)</button>
-                <button onclick="document.getElementById('modeSelectMask').style.display='none'" style="background:#f44336; color:white; margin-top:10px;">取消</button>
-            </div>
         </div>
     </div>
 
     <div id="page4" class="page-container">
-        <div class="page4-top-action">
-            <button id="copyEmptyMeaningBtn" class="btn" style="background-color: #8e44ad; padding: 0 20px; width: auto; flex: none;">复制无释义单词</button>
-        </div>
         <div id="noMarkedMessage" class="no-marked" style="display: none;">暂无标记内容</div>
         <div id="markedWordsContainer" class="marked-words-container"></div>
         <div id="page4ActionContainer" class="page4-action-container">
@@ -293,11 +278,40 @@
             return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
         }
 
+        let touchStartX = 0;
+        let currentPageIndex = 1;
+        const swipeThreshold = 50; 
+
+        function handleTouchStart(event) {
+            const targetNode = event.target.nodeName.toUpperCase();
+            if (document.getElementById('confirmDialog').style.display !== 'none' ||
+                ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(targetNode) ||
+                event.target.closest('.filter-dot')) { 
+                touchStartX = 0;
+                return;
+            }
+            touchStartX = event.changedTouches[0].screenX;
+        }
+
+        function handleTouchEnd(event) {
+            if (touchStartX === 0) return;
+            const touchEndX = event.changedTouches[0].screenX;
+            const diffX = touchEndX - touchStartX;
+            // 修复BUG：支持5个页面之间的滑动切换
+            if (diffX < -swipeThreshold && currentPageIndex < 5) { navigateTo(`page${currentPageIndex + 1}`); }
+            else if (diffX > swipeThreshold && currentPageIndex > 1) { navigateTo(`page${currentPageIndex - 1}`); }
+            touchStartX = 0;
+        }
+
+        document.body.addEventListener('touchstart', handleTouchStart, false);
+        document.body.addEventListener('touchend', handleTouchEnd, false);
+
         function navigateTo(pageId) {
             Object.values(pages).forEach(p => p.classList.remove('active'));
             Object.values(navButtons).forEach(b => b.classList.remove('active'));
             pages[pageId].classList.add('active');
             navButtons['btn' + pageId.slice(-1)].classList.add('active');
+            currentPageIndex = parseInt(pageId.slice(-1));
             const handler = app[pageId];
             if (handler && typeof handler.onShow === 'function') {
                 handler.onShow();
@@ -873,7 +887,6 @@
                     selectBtn: document.getElementById('spellSelectBtn'),
                     reviewBtn: document.getElementById('spellReviewBtn'),
                     errorBtn: document.getElementById('spellErrorBtn'),
-                    mask: document.getElementById('modeSelectMask'),
                     meaningDisplay: document.getElementById('spellMeaningDisplay'),
                     hintDisplay: document.getElementById('spellHintDisplay'),
                     inputField: document.getElementById('spellInputField'),
@@ -881,6 +894,7 @@
                     progressNM: document.getElementById('spellProgressNM'),
                     progressJ: document.getElementById('spellProgressJ'),
                     restartBtn: document.getElementById('spellRestartBtn'),
+                    copyEmptyBtn: document.getElementById('copyEmptyMeaningBtnPage3'),
                     travelBtn: document.getElementById('spellTravelBtnPage3')
                 },
                 onLoad() {
@@ -888,25 +902,45 @@
                 },
                 onShow() {
                     app.globalInit(); // 刷新复习按钮数字
+                    this.updateSelectOptions(); // 动态计算并更新下拉选项和对应的数字
                     this.loadSpellingState();
                 },
                 addEventListeners() {
-                    this.elements.selectBtn.addEventListener('click', () => { this.elements.mask.style.display = 'flex'; });
-                    this.elements.mask.querySelectorAll('button[data-mode]').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            this.elements.mask.style.display = 'none';
-                            this.switchMode('select', e.target.dataset.mode);
-                        });
+                    this.elements.selectBtn.addEventListener('change', (e) => { 
+                        this.switchMode('select', e.target.value); 
                     });
                     this.elements.reviewBtn.addEventListener('click', () => this.switchMode('review', null));
                     this.elements.errorBtn.addEventListener('click', () => this.switchMode('error', null));
                     
                     this.elements.restartBtn.addEventListener('click', () => this.restartCurrentMode());
+                    this.elements.copyEmptyBtn.addEventListener('click', () => this.copyEmptyMeaningWords());
                     this.elements.travelBtn.addEventListener('click', () => this.travelWord());
 
                     this.elements.inputField.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') this.checkInput();
                     });
+                },
+                updateSelectOptions() {
+                    const allCards = wx.getStorageSync('myCards') || [];
+                    const todayword = allCards.filter(card => app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday));
+                    const todayNewWord = allCards.filter(card => card.pastday === 0);
+                    const errorBook = wx.getStorageSync('errorBook') || [];
+
+                    const countA = allCards.length;
+                    const count0 = allCards.length;
+                    const count1 = todayword.length;
+                    const countMinus1 = todayNewWord.length;
+                    const countE = errorBook.length;
+
+                    // 重构原生 select 选项
+                    this.elements.selectBtn.innerHTML = `
+                        <option value="" disabled ${!this.data.subMode ? 'selected' : ''}>选择</option>
+                        <option value="A" ${this.data.subMode === 'A' ? 'selected' : ''}>A - ${countA}</option>
+                        <option value="0" ${this.data.subMode === '0' ? 'selected' : ''}>0 - ${count0}</option>
+                        <option value="1" ${this.data.subMode === '1' ? 'selected' : ''}>1 - ${count1}</option>
+                        <option value="-1" ${this.data.subMode === '-1' ? 'selected' : ''}>-1 - ${countMinus1}</option>
+                        <option value="E" ${this.data.subMode === 'E' ? 'selected' : ''}>E - ${countE}</option>
+                    `;
                 },
                 getStorageKey() {
                     if (!this.data.activeMode) return null;
@@ -915,7 +949,6 @@
                 saveSpellingState() {
                     const key = this.getStorageKey();
                     if (key && this.data.state) wx.setStorageSync(key, this.data.state);
-                    
                     // 保存全局当前选中的模式，便于下次打开恢复
                     wx.setStorageSync('spellLastActive', { mode: this.data.activeMode, sub: this.data.subMode });
                 },
@@ -927,9 +960,18 @@
                 },
                 updateUINav() {
                     [this.elements.selectBtn, this.elements.reviewBtn, this.elements.errorBtn].forEach(b => b.classList.remove('active'));
-                    if (this.data.activeMode === 'select') this.elements.selectBtn.classList.add('active');
-                    if (this.data.activeMode === 'review') this.elements.reviewBtn.classList.add('active');
-                    if (this.data.activeMode === 'error') this.elements.errorBtn.classList.add('active');
+                    if (this.data.activeMode === 'select') {
+                        this.elements.selectBtn.classList.add('active');
+                        this.elements.selectBtn.value = this.data.subMode || "";
+                    }
+                    if (this.data.activeMode === 'review') {
+                        this.elements.reviewBtn.classList.add('active');
+                        this.elements.selectBtn.value = "";
+                    }
+                    if (this.data.activeMode === 'error') {
+                        this.elements.errorBtn.classList.add('active');
+                        this.elements.selectBtn.value = "";
+                    }
                 },
                 switchMode(mode, subMode, isResume = false) {
                     this.data.activeMode = mode;
@@ -1019,7 +1061,10 @@
                     this.elements.hintDisplay.style.display = 'none';
                     
                     const wordObj = this.data.state.currentWord;
-                    this.elements.meaningDisplay.innerHTML = wordObj.meaning ? wordObj.meaning.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '<br>') : '<span style="color:#ccc;">[无释义]</span>';
+                    // 新增需求：如果当前单词的释义为空，显示“该单词无释义，请添加”
+                    this.elements.meaningDisplay.innerHTML = (wordObj.meaning && wordObj.meaning.trim() !== '') 
+                        ? wordObj.meaning.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '<br>') 
+                        : '<span style="color:#ccc;">该单词无释义，请添加</span>';
                     
                     this.elements.progressDisplay.style.display = 'block';
                     this.elements.progressNM.textContent = `${this.data.state.currentN}/${this.data.state.totalM}`;
@@ -1118,6 +1163,23 @@
                     const word = this.data.state.currentWord.word;
                     wx.setClipboardData({ data: word }); 
                     window.location.href = `eudic://dict/${encodeURIComponent(word.trim())}`;
+                },
+                copyEmptyMeaningWords() {
+                    const allCards = wx.getStorageSync('myCards') || [];
+                    const emptyWords = allCards
+                        .filter(card => !card.meaning || card.meaning.trim() === '')
+                        .map(card => card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n'));
+                        
+                    if (emptyWords.length === 0) {
+                        wx.showToast({ title: '太棒了，没有空释义单词！', icon: 'info' });
+                        return;
+                    }
+                    
+                    const contentStr = emptyWords.join('\n');
+                    wx.setClipboardData({ 
+                        data: contentStr, 
+                        success: () => wx.showToast({ title: `成功复制 ${emptyWords.length} 个单词`, icon: 'success', duration: 1500 }) 
+                    });
                 }
             },
 
@@ -1126,21 +1188,13 @@
                 data: { selectedWord: null },
                 elements: {
                     container: document.getElementById('markedWordsContainer'), noMarkedMsg: document.getElementById('noMarkedMessage'),
-                    actionContainer: document.getElementById('page4ActionContainer'), deleteBtn: document.getElementById('deleteMarkedBtn'), travelBtn: document.getElementById('travelMarkedBtn'),
-                    copyEmptyBtn: document.getElementById('copyEmptyMeaningBtn')
+                    actionContainer: document.getElementById('page4ActionContainer'), deleteBtn: document.getElementById('deleteMarkedBtn'), travelBtn: document.getElementById('travelMarkedBtn')
                 },
                 onLoad() { this.addEventListeners(); },
                 onShow() { this.loadMarkedWords(); },
                 addEventListeners() {
                     this.elements.deleteBtn.addEventListener('click', () => this.deleteSelectedWord());
                     this.elements.travelBtn.addEventListener('click', () => this.travelSelectedWord());
-                    this.elements.copyEmptyBtn.addEventListener('click', () => this.copyEmptyMeaningWords());
-                },
-                copyEmptyMeaningWords() {
-                    const allCards = wx.getStorageSync('myCards') || [];
-                    const emptyWords = allCards.filter(card => !card.meaning || card.meaning.trim() === '').map(card => card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n'));
-                    if (emptyWords.length === 0) { wx.showToast({ title: '太棒了，没有空释义单词！', icon: 'info' }); return; }
-                    wx.setClipboardData({ data: emptyWords.join('\n'), success: () => wx.showToast({ title: `成功复制 ${emptyWords.length} 个单词`, icon: 'success', duration: 1500 }) });
                 },
                 loadMarkedWords() {
                     let words = wx.getStorageSync('markedWords') || [];
