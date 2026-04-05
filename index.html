@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v3.7';</script>
+    <script>const APP_VERSION = 'v3.8';</script>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -290,10 +290,10 @@
         }
         .search-delete-btn:active { opacity: 0.8; transform: scale(0.98); }
 
-        /* 单词输入框（下移并双倍高度） */
+        /* 单词输入框 */
         .input-box {
             width: 100%;
-            height: 160px; /* 双倍高度 */
+            height: 160px; 
             border: 1px solid #cccccc;
             border-radius: 5px;
             padding: 10px 14px;
@@ -656,6 +656,12 @@
                     this.onShow(); 
                 },
                 onShow() {
+                    // 修复跨天挂机不刷新的bug，每次切回此页面都检验一下时间
+                    const todayStr = new Date().toLocaleDateString('en-CA');
+                    if (wx.getStorageSync('lastInitDate') !== todayStr) {
+                        this.handleDailyDataInitialization();
+                    }
+                    
                     this.updateStatistics(); 
                     this.data.swipeCount = wx.getStorageSync('swipeCount') || 0; 
                     this.elements.swipeCount.textContent = this.data.swipeCount; 
@@ -809,6 +815,13 @@
                 },
 
                 getRandomContent(isUserAction = false) { 
+                    // 进一步修复后台挂机跨天不刷新的bug，每次点击下一张也检测
+                    const todayStr = new Date().toLocaleDateString('en-CA');
+                    if (wx.getStorageSync('lastInitDate') !== todayStr) {
+                        this.handleDailyDataInitialization();
+                        this.loadProgress();
+                    }
+
                     if (isUserAction) { 
                         let totalCount = (wx.getStorageSync('swipeCount') || 0) + 1;
                         wx.setStorageSync('swipeCount', totalCount);
@@ -918,8 +931,8 @@
                     let displayHtml = `<div class="card-content-container">`;
                     displayHtml += `<span class="card-text" style="font-weight: bold;">${displayWord.replace(/\n/g, '<br>')}</span>`; 
                     
-                    // 已移除第一页的释义显示代码
-                    
+                    // 第一页不再显示释义
+
                     if (count > 0) { 
                         displayHtml += `<div class="word-count">${count}</div>`; 
                     }
@@ -1332,6 +1345,11 @@
                         app.page1.data.j = app.page1.data.allword.length;
                         app.page1.data.n = app.page1.data.todayword.length;
                         app.page1.data.z = app.page1.data.todayNewWord.length;
+
+                        // 修复第0轮的显示bug（新增卡片后如果是在某模式池内首次填入，应将轮次重置为1）
+                        if (app.page1.data.k === 0 && app.page1.data.allword1.length > 0) app.page1.data.k = 1;
+                        if (app.page1.data.m === 0 && app.page1.data.todayword1.length > 0) app.page1.data.m = 1;
+                        if (app.page1.data.p === 0 && app.page1.data.todayNewWord1.length > 0) app.page1.data.p = 1;
 
                         if (app.page1.data.currentMode === '0') app.page1.data.i = app.page1.data.j - app.page1.data.allword1.length;
                         else if (app.page1.data.currentMode === '1') app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
