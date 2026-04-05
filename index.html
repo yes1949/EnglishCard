@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.11';</script>
+    <script>const APP_VERSION = 'v1.12';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -184,7 +184,7 @@
         </div>
         <div id="spellMeaningDisplay" class="spell-meaning-area">请选择上方的模式开始拼写</div>
         <div id="spellHintDisplay" class="spell-hint-area"></div>
-        <input type="text" id="spellInputField" class="spell-input-line" placeholder="" disabled>
+        <input type="text" id="spellInputField" class="spell-input-line" disabled>
         
         <div id="spellProgressDisplay" class="spell-progress" style="display:none;">
             <span id="spellProgressNM">0/0</span>
@@ -271,7 +271,6 @@
         const NEWLINE_REPLACEMENT = '##NEWLINE##';
         const ERROR_SCHEDULE = [1, 2, 4, 7, 15, 30, 45, 60, 75, 90];
 
-        // 帮助函数：计算两个日期的天数差
         function getDaysDiff(dateStr1, dateStr2) {
             const d1 = new Date(dateStr1);
             const d2 = new Date(dateStr2);
@@ -299,7 +298,6 @@
             if (touchStartX === 0) return;
             const touchEndX = event.changedTouches[0].screenX;
             const diffX = touchEndX - touchStartX;
-            // 修复BUG：支持5个页面之间的滑动切换
             if (diffX < -swipeThreshold && currentPageIndex < 5) { navigateTo(`page${currentPageIndex + 1}`); }
             else if (diffX > swipeThreshold && currentPageIndex > 1) { navigateTo(`page${currentPageIndex - 1}`); }
             touchStartX = 0;
@@ -348,7 +346,6 @@
                 });
                 wx.setStorageSync('reviewToday', reviewToday);
                 
-                // 仅更新 DOM 不存在的判断保护
                 const reviewBtn = document.getElementById('spellReviewBtn');
                 if(reviewBtn) reviewBtn.textContent = `复习 (${reviewToday.length})`;
             },
@@ -615,15 +612,11 @@
                         let wordCounts = wx.getStorageSync('wordCounts') || {};
                         if (wordCounts[deletedWord]) { delete wordCounts[deletedWord]; wx.setStorageSync('wordCounts', wordCounts); }
                         
-                        // 从错题本同步删除
                         let errorBook = wx.getStorageSync('errorBook') || [];
                         errorBook = errorBook.filter(e => e.word !== deletedWord);
                         wx.setStorageSync('errorBook', errorBook);
-
-                        // 清理第三页进度库
-                        if (app.page3 && typeof app.page3.removeWordFromState === 'function') {
-                            app.page3.removeWordFromState(deletedWord);
-                        }
+                        
+                        if (app.page3 && typeof app.page3.removeWordFromState === 'function') app.page3.removeWordFromState(deletedWord);
 
                         wx.showToast({ title: '删除成功', icon: 'success' }); 
                         this.getRandomContent(false); 
@@ -778,9 +771,15 @@
 
                         if (forceUpdate) {
                             const initLen = existingCards.length;
-                            existingCards = existingCards.filter(card => card.word !== wordToSave);
+                            let oldMeaning = "";
+                            existingCards = existingCards.filter(card => {
+                                if (card.word === wordToSave) { oldMeaning = card.meaning || ""; return false; }
+                                return true;
+                            });
                             if (existingCards.length < initLen) { updateCount++; forceUpdatedWordsList.push(wordToSave); }
-                            uniqueNewCards.push({ word: wordToSave, meaning: meaningPart, pastday: pastday, createDate: createDate });
+                            
+                            let finalMeaning = meaningPart.trim() !== '' ? meaningPart : oldMeaning;
+                            uniqueNewCards.push({ word: wordToSave, meaning: finalMeaning, pastday: pastday, createDate: createDate });
                         } else {
                             let existingCard = existingCards.find(c => c.word === wordToSave);
                             if (existingCard) {
@@ -978,7 +977,6 @@
                         this.elements.selectBtn.value = "";
                     }
                 },
-                // 为了保证“删除全局词库后，能即时清理拼写队列进度”的穿透更新
                 removeWordFromState(wordToDelete) {
                     Object.keys(localStorage).forEach(key => {
                         if (key.startsWith('spellState_')) {
@@ -1083,7 +1081,7 @@
                             this.data.state.totalM = this.data.state.queue.length;
                             this.data.state.currentN = 1;
                             this.data.state.wrongJ = 0;
-                            this.data.state.roundErrors = []; // 重置，为“错题复习环节中产生的错题”做准备
+                            this.data.state.roundErrors = []; 
                         } else {
                             this.setEmptyState('太棒了，本次拼写已完美完成！再次点击重来可重刷。');
                             if (this.data.activeMode === 'review') app.globalInit();
@@ -1125,7 +1123,6 @@
                     if (!inputStr) return;
 
                     const correctWord = this.data.state.currentWord.word;
-                    // 对比逻辑：全部去除标点符号、空格，全转小写
                     const normalize = (str) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     const isCorrect = normalize(inputStr) === normalize(correctWord);
 
@@ -1172,12 +1169,10 @@
                         errorToday.push(word); wx.setStorageSync('errorToday', errorToday);
                     }
 
-                    // 加入本轮的错题练习队列（只在第一次输错时加入，避免在错题复习环节无限套娃添加同一词）
                     if (activeWord.failAttempt === 1) {
                         this.data.state.roundErrors.push({ word: activeWord.word, meaning: activeWord.meaning, failAttempt: 0 });
                     }
 
-                    // 错误反馈
                     if (activeWord.failAttempt > 1) {
                         this.elements.hintDisplay.textContent = word;
                         this.elements.hintDisplay.style.visibility = 'visible';
@@ -1188,7 +1183,6 @@
 
                     this.elements.inputField.value = '';
                     this.saveSpellingState();
-                    // 不进行 nextWord()，让用户留在原词继续尝试
                 },
                 updateSpellingStats(word, isCorrect) {
                     let stats = wx.getStorageSync('spellingStats') || {};
