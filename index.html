@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.10';</script>
+    <script>const APP_VERSION = 'v1.11';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -87,8 +87,9 @@
         .spell-select-btn { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; outline: none; font-size: 14px; }
         .spell-btn-top { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; font-size: 14px;}
         .spell-btn-top.active, .spell-select-btn.active { background-color: #007AFF; color: #fff;}
-        .spell-meaning-area { width: 100%; min-height: 40px; text-align: center; font-size: 16px; color: #555; word-wrap: break-word; padding: 10px; box-sizing: border-box;}
-        .spell-hint-area { width: 100%; height: 30px; text-align: center; font-size: 20px; font-weight: bold; color: #e74c3c; line-height: 30px; }
+        .spell-meaning-area { width: 100%; min-height: 40px; text-align: center; font-size: 16px; color: #555; word-wrap: break-word; padding: 10px; box-sizing: border-box; transition: color 0.3s;}
+        .meaning-red { color: #e74c3c !important; font-weight: bold; } /* 错题回顾阶段特殊样式 */
+        .spell-hint-area { width: 100%; height: 20px; text-align: center; font-size: 14px; font-weight: bold; color: #e74c3c; line-height: 20px; visibility: hidden; margin-bottom: 5px;}
         .spell-input-line { width: 100%; border: none; border-bottom: 2px solid #333; background: transparent; font-size: 24px; text-align: center; padding: 10px 5px; outline: none; }
         .spell-input-line:focus { border-bottom-color: #007AFF; }
         .spell-progress { width: 100%; text-align: center; font-size: 14px; color: #aaa; margin-top: 5px; }
@@ -183,7 +184,8 @@
         </div>
         <div id="spellMeaningDisplay" class="spell-meaning-area">请选择上方的模式开始拼写</div>
         <div id="spellHintDisplay" class="spell-hint-area"></div>
-        <input type="text" id="spellInputField" class="spell-input-line" placeholder="输入拼写后回车" disabled>
+        <input type="text" id="spellInputField" class="spell-input-line" placeholder="" disabled>
+        
         <div id="spellProgressDisplay" class="spell-progress" style="display:none;">
             <span id="spellProgressNM">0/0</span>
             <span id="spellProgressJ" class="spell-progress-wrong">0</span>
@@ -345,7 +347,10 @@
                     }
                 });
                 wx.setStorageSync('reviewToday', reviewToday);
-                document.getElementById('spellReviewBtn').textContent = `复习 (${reviewToday.length})`;
+                
+                // 仅更新 DOM 不存在的判断保护
+                const reviewBtn = document.getElementById('spellReviewBtn');
+                if(reviewBtn) reviewBtn.textContent = `复习 (${reviewToday.length})`;
             },
 
             // =================================== PAGE 1: 抽卡 ===================================
@@ -609,6 +614,17 @@
                         this.saveProgress(); 
                         let wordCounts = wx.getStorageSync('wordCounts') || {};
                         if (wordCounts[deletedWord]) { delete wordCounts[deletedWord]; wx.setStorageSync('wordCounts', wordCounts); }
+                        
+                        // 从错题本同步删除
+                        let errorBook = wx.getStorageSync('errorBook') || [];
+                        errorBook = errorBook.filter(e => e.word !== deletedWord);
+                        wx.setStorageSync('errorBook', errorBook);
+
+                        // 清理第三页进度库
+                        if (app.page3 && typeof app.page3.removeWordFromState === 'function') {
+                            app.page3.removeWordFromState(deletedWord);
+                        }
+
                         wx.showToast({ title: '删除成功', icon: 'success' }); 
                         this.getRandomContent(false); 
                     }
@@ -661,13 +677,11 @@
                         const joinDateStr = card.createDate.replace(/-/g, '');
                         const meaningHtml = card.meaning ? `<div class="search-result-info" style="color:#666; font-size: 13px;">释义：${card.meaning}</div>` : '';
 
-                        // 原卡片记忆曲线
                         let curveHtml = '';
                         [1, 2, 4, 7, 15, 30, 60, 90, 120].forEach(day => {
                             if (card.pastday >= day) curveHtml += `<span class="done">${day}</span>`; else curveHtml += `<span class="pending">${day}</span>`;
                         });
 
-                        // 拼写历史和拼写计划
                         let spellingStats = wx.getStorageSync('spellingStats') || {};
                         let stats = spellingStats[card.word] || { correct: 0, wrong: 0 };
                         let spellHistoryHtml = `<div class="search-result-info">拼写历史：<span style="color:#4caf50;">✓${stats.correct}</span> <span style="color:#f44336;">✗${stats.wrong}</span></div>`;
@@ -724,10 +738,13 @@
                         let wordCounts = wx.getStorageSync('wordCounts') || {};
                         if (wordCounts[wordToDelete]) { delete wordCounts[wordToDelete]; wx.setStorageSync('wordCounts', wordCounts); }
                         
-                        // 从错题本同步删除
                         let errorBook = wx.getStorageSync('errorBook') || [];
                         errorBook = errorBook.filter(e => e.word !== wordToDelete);
                         wx.setStorageSync('errorBook', errorBook);
+                        
+                        if (app.page3 && typeof app.page3.removeWordFromState === 'function') {
+                            app.page3.removeWordFromState(wordToDelete);
+                        }
 
                         wx.showToast({ title: '删除成功', icon: 'success' }); app.page1.updateStatistics();
                         if (app.page1.data.displayContent === wordToDelete.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n')) app.page1.getRandomContent(false);
@@ -879,9 +896,9 @@
             // =================================== PAGE 3: 回顾(拼写) ===================================
             page3: {
                 data: {
-                    activeMode: null,  // 当前激活的模式分类 (select, review, error)
-                    subMode: null,     // 子模式 (A, 0, 1, -1, E)
-                    state: null        // { queue, totalM, currentN, wrongJ, currentWord }
+                    activeMode: null,  
+                    subMode: null,     
+                    state: null        
                 },
                 elements: {
                     selectBtn: document.getElementById('spellSelectBtn'),
@@ -897,12 +914,10 @@
                     copyEmptyBtn: document.getElementById('copyEmptyMeaningBtnPage3'),
                     travelBtn: document.getElementById('spellTravelBtnPage3')
                 },
-                onLoad() {
-                    this.addEventListeners();
-                },
+                onLoad() { this.addEventListeners(); },
                 onShow() {
-                    app.globalInit(); // 刷新复习按钮数字
-                    this.updateSelectOptions(); // 动态计算并更新下拉选项和对应的数字
+                    app.globalInit(); 
+                    this.updateSelectOptions(); 
                     this.loadSpellingState();
                 },
                 addEventListeners() {
@@ -911,11 +926,9 @@
                     });
                     this.elements.reviewBtn.addEventListener('click', () => this.switchMode('review', null));
                     this.elements.errorBtn.addEventListener('click', () => this.switchMode('error', null));
-                    
                     this.elements.restartBtn.addEventListener('click', () => this.restartCurrentMode());
                     this.elements.copyEmptyBtn.addEventListener('click', () => this.copyEmptyMeaningWords());
                     this.elements.travelBtn.addEventListener('click', () => this.travelWord());
-
                     this.elements.inputField.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') this.checkInput();
                     });
@@ -926,20 +939,13 @@
                     const todayNewWord = allCards.filter(card => card.pastday === 0);
                     const errorBook = wx.getStorageSync('errorBook') || [];
 
-                    const countA = allCards.length;
-                    const count0 = allCards.length;
-                    const count1 = todayword.length;
-                    const countMinus1 = todayNewWord.length;
-                    const countE = errorBook.length;
-
-                    // 重构原生 select 选项
                     this.elements.selectBtn.innerHTML = `
                         <option value="" disabled ${!this.data.subMode ? 'selected' : ''}>选择</option>
-                        <option value="A" ${this.data.subMode === 'A' ? 'selected' : ''}>A - ${countA}</option>
-                        <option value="0" ${this.data.subMode === '0' ? 'selected' : ''}>0 - ${count0}</option>
-                        <option value="1" ${this.data.subMode === '1' ? 'selected' : ''}>1 - ${count1}</option>
-                        <option value="-1" ${this.data.subMode === '-1' ? 'selected' : ''}>-1 - ${countMinus1}</option>
-                        <option value="E" ${this.data.subMode === 'E' ? 'selected' : ''}>E - ${countE}</option>
+                        <option value="A" ${this.data.subMode === 'A' ? 'selected' : ''}>A - ${allCards.length}</option>
+                        <option value="0" ${this.data.subMode === '0' ? 'selected' : ''}>0 - ${allCards.length}</option>
+                        <option value="1" ${this.data.subMode === '1' ? 'selected' : ''}>1 - ${todayword.length}</option>
+                        <option value="-1" ${this.data.subMode === '-1' ? 'selected' : ''}>-1 - ${todayNewWord.length}</option>
+                        <option value="E" ${this.data.subMode === 'E' ? 'selected' : ''}>E - ${errorBook.length}</option>
                     `;
                 },
                 getStorageKey() {
@@ -949,7 +955,6 @@
                 saveSpellingState() {
                     const key = this.getStorageKey();
                     if (key && this.data.state) wx.setStorageSync(key, this.data.state);
-                    // 保存全局当前选中的模式，便于下次打开恢复
                     wx.setStorageSync('spellLastActive', { mode: this.data.activeMode, sub: this.data.subMode });
                 },
                 loadSpellingState() {
@@ -973,6 +978,36 @@
                         this.elements.selectBtn.value = "";
                     }
                 },
+                // 为了保证“删除全局词库后，能即时清理拼写队列进度”的穿透更新
+                removeWordFromState(wordToDelete) {
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith('spellState_')) {
+                            let state = wx.getStorageSync(key);
+                            if (state) {
+                                let modified = false;
+                                if (state.queue) {
+                                    let len = state.queue.length;
+                                    state.queue = state.queue.filter(w => w.word !== wordToDelete);
+                                    if (state.queue.length !== len) { modified = true; state.totalM -= (len - state.queue.length); }
+                                }
+                                if (state.roundErrors) {
+                                    state.roundErrors = state.roundErrors.filter(w => w.word !== wordToDelete);
+                                    modified = true;
+                                }
+                                if (state.currentWord && state.currentWord.word === wordToDelete) {
+                                    state.currentWord = null; modified = true;
+                                }
+                                if (modified) {
+                                    wx.setStorageSync(key, state);
+                                    if (this.getStorageKey() === key && this.data.state) {
+                                        this.data.state = state;
+                                        if (!state.currentWord) this.nextWord(); else this.updateProgressUI();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
                 switchMode(mode, subMode, isResume = false) {
                     this.data.activeMode = mode;
                     this.data.subMode = subMode;
@@ -981,8 +1016,9 @@
                     const key = this.getStorageKey();
                     let savedState = wx.getStorageSync(key);
                     
-                    if (savedState && savedState.totalM > 0 && (savedState.currentWord || savedState.queue.length > 0)) {
+                    if (savedState && savedState.totalM > 0 && (savedState.currentWord || savedState.queue.length > 0 || savedState.roundErrors?.length > 0)) {
                         this.data.state = savedState;
+                        if (!this.data.state.roundErrors) this.data.state.roundErrors = [];
                         this.renderCurrentWord();
                     } else if (!isResume) {
                         this.initNewQueue();
@@ -991,9 +1027,7 @@
                     }
                 },
                 restartCurrentMode() {
-                    if (!this.data.activeMode) {
-                        wx.showToast({title: '请先选择模式', icon:'none'}); return;
-                    }
+                    if (!this.data.activeMode) { wx.showToast({title: '请先选择模式', icon:'none'}); return; }
                     this.initNewQueue();
                 },
                 initNewQueue() {
@@ -1018,37 +1052,43 @@
                     }
 
                     if (baseList.length === 0) {
-                        this.setEmptyState('当前条件下没有单词');
-                        return;
+                        this.setEmptyState('当前条件下没有单词'); return;
                     }
 
-                    // 洗牌打乱队列
                     baseList = baseList.sort(() => Math.random() - 0.5);
 
                     this.data.state = {
                         queue: baseList.map(c => ({ word: c.word, meaning: c.meaning, failAttempt: 0 })),
-                        totalM: baseList.length,
-                        currentN: 1,
-                        wrongJ: 0,
-                        currentWord: null
+                        totalM: baseList.length, currentN: 1, wrongJ: 0,
+                        currentWord: null, roundErrors: [], isErrorReviewPhase: false
                     };
-                    
                     this.nextWord();
                 },
                 setEmptyState(msg) {
                     this.data.state = null;
                     this.elements.meaningDisplay.textContent = msg;
+                    this.elements.meaningDisplay.classList.remove('meaning-red');
                     this.elements.inputField.value = '';
                     this.elements.inputField.disabled = true;
                     this.elements.progressDisplay.style.display = 'none';
+                    this.elements.hintDisplay.style.visibility = 'hidden';
                     this.saveSpellingState();
                 },
                 nextWord() {
                     if (this.data.state.queue.length === 0) {
-                        this.setEmptyState('太棒了，本次拼写已完成！再次点击按钮可重新开始。');
-                        // 完成时若在复习模式，更新显示数量
-                        if (this.data.activeMode === 'review') app.globalInit();
-                        return;
+                        if (this.data.state.roundErrors && this.data.state.roundErrors.length > 0) {
+                            wx.showToast({title: '进入本轮错题复习环节', icon: 'info'});
+                            this.data.state.isErrorReviewPhase = true;
+                            this.data.state.queue = [...this.data.state.roundErrors].sort(() => Math.random() - 0.5);
+                            this.data.state.totalM = this.data.state.queue.length;
+                            this.data.state.currentN = 1;
+                            this.data.state.wrongJ = 0;
+                            this.data.state.roundErrors = []; // 重置，为“错题复习环节中产生的错题”做准备
+                        } else {
+                            this.setEmptyState('太棒了，本次拼写已完美完成！再次点击重来可重刷。');
+                            if (this.data.activeMode === 'review') app.globalInit();
+                            return;
+                        }
                     }
                     this.data.state.currentWord = this.data.state.queue.shift();
                     this.renderCurrentWord();
@@ -1058,22 +1098,26 @@
                     
                     this.elements.inputField.disabled = false;
                     this.elements.inputField.value = '';
-                    this.elements.hintDisplay.style.display = 'none';
+                    this.elements.hintDisplay.style.visibility = 'hidden';
                     
                     const wordObj = this.data.state.currentWord;
-                    // 新增需求：如果当前单词的释义为空，显示“该单词无释义，请添加”
+                    
                     this.elements.meaningDisplay.innerHTML = (wordObj.meaning && wordObj.meaning.trim() !== '') 
                         ? wordObj.meaning.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '<br>') 
-                        : '<span style="color:#ccc;">该单词无释义，请添加</span>';
+                        : '<span style="color:#aaa; font-size:14px;">该单词无释义，请添加</span>';
+                        
+                    if (this.data.state.isErrorReviewPhase) this.elements.meaningDisplay.classList.add('meaning-red');
+                    else this.elements.meaningDisplay.classList.remove('meaning-red');
                     
                     this.elements.progressDisplay.style.display = 'block';
-                    this.elements.progressNM.textContent = `${this.data.state.currentN}/${this.data.state.totalM}`;
-                    this.elements.progressJ.textContent = this.data.state.wrongJ;
+                    this.updateProgressUI();
                     
                     this.saveSpellingState();
-                    
-                    // 自动聚焦
                     setTimeout(() => { this.elements.inputField.focus(); }, 100);
+                },
+                updateProgressUI() {
+                    this.elements.progressNM.textContent = `${this.data.state.currentN}/${this.data.state.totalM}`;
+                    this.elements.progressJ.textContent = this.data.state.wrongJ;
                 },
                 checkInput() {
                     if (!this.data.state || !this.data.state.currentWord) return;
@@ -1081,16 +1125,12 @@
                     if (!inputStr) return;
 
                     const correctWord = this.data.state.currentWord.word;
-                    
-                    // 判断逻辑：只提取字母和数字对比
+                    // 对比逻辑：全部去除标点符号、空格，全转小写
                     const normalize = (str) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     const isCorrect = normalize(inputStr) === normalize(correctWord);
 
-                    if (isCorrect) {
-                        this.handleCorrectSpelling(correctWord);
-                    } else {
-                        this.handleWrongSpelling(correctWord);
-                    }
+                    if (isCorrect) this.handleCorrectSpelling(correctWord);
+                    else this.handleWrongSpelling(correctWord);
                 },
                 handleCorrectSpelling(word) {
                     wx.showToast({title: '正确', icon: 'success', duration: 500});
@@ -1106,7 +1146,7 @@
                             wx.setStorageSync('errorBook', errorBook);
                         }
                     }
-
+                    this.elements.hintDisplay.style.visibility = 'hidden';
                     this.data.state.currentN++;
                     this.nextWord();
                 },
@@ -1115,42 +1155,40 @@
                     activeWord.failAttempt++;
                     this.data.state.wrongJ++;
                     this.updateSpellingStats(word, false);
+                    this.updateProgressUI();
 
-                    // 错误处理逻辑：加入/重置 errorBook
                     const todayStr = new Date().toLocaleDateString('en-CA');
                     let errorBook = wx.getStorageSync('errorBook') || [];
                     let eItem = errorBook.find(e => e.word === word);
                     if (eItem) {
-                        eItem.reviewLevel = 0;
-                        eItem.lastReviewDate = todayStr;
-                        eItem.failCount = (eItem.failCount || 0) + 1;
+                        eItem.reviewLevel = 0; eItem.lastReviewDate = todayStr; eItem.failCount = (eItem.failCount || 0) + 1;
                     } else {
                         errorBook.push({ word: word, joinDate: todayStr, lastReviewDate: todayStr, reviewLevel: 0, failCount: 1, correctCount: 0 });
                     }
                     wx.setStorageSync('errorBook', errorBook);
 
-                    // 加入今日错题
                     let errorToday = wx.getStorageSync('errorToday') || [];
                     if (!errorToday.includes(word)) {
-                        errorToday.push(word);
-                        wx.setStorageSync('errorToday', errorToday);
+                        errorToday.push(word); wx.setStorageSync('errorToday', errorToday);
                     }
 
-                    // UI 提示 & 推入队尾重练
+                    // 加入本轮的错题练习队列（只在第一次输错时加入，避免在错题复习环节无限套娃添加同一词）
+                    if (activeWord.failAttempt === 1) {
+                        this.data.state.roundErrors.push({ word: activeWord.word, meaning: activeWord.meaning, failAttempt: 0 });
+                    }
+
+                    // 错误反馈
                     if (activeWord.failAttempt > 1) {
                         this.elements.hintDisplay.textContent = word;
-                        this.elements.hintDisplay.style.display = 'block';
-                        setTimeout(() => { this.elements.hintDisplay.style.display = 'none'; }, 2000);
+                        this.elements.hintDisplay.style.visibility = 'visible';
+                        setTimeout(() => { this.elements.hintDisplay.style.visibility = 'hidden'; }, 2000);
                     } else {
                         wx.showToast({title: '拼写错误', icon: 'error', duration: 800});
                     }
 
                     this.elements.inputField.value = '';
-                    
-                    // 推入队尾
-                    this.data.state.queue.push(activeWord);
-                    this.data.state.currentWord = null; // 置空触发重新抽取
-                    this.nextWord();
+                    this.saveSpellingState();
+                    // 不进行 nextWord()，让用户留在原词继续尝试
                 },
                 updateSpellingStats(word, isCorrect) {
                     let stats = wx.getStorageSync('spellingStats') || {};
@@ -1170,16 +1208,8 @@
                         .filter(card => !card.meaning || card.meaning.trim() === '')
                         .map(card => card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n'));
                         
-                    if (emptyWords.length === 0) {
-                        wx.showToast({ title: '太棒了，没有空释义单词！', icon: 'info' });
-                        return;
-                    }
-                    
-                    const contentStr = emptyWords.join('\n');
-                    wx.setClipboardData({ 
-                        data: contentStr, 
-                        success: () => wx.showToast({ title: `成功复制 ${emptyWords.length} 个单词`, icon: 'success', duration: 1500 }) 
-                    });
+                    if (emptyWords.length === 0) { wx.showToast({ title: '太棒了，没有空释义单词！', icon: 'info' }); return; }
+                    wx.setClipboardData({ data: emptyWords.join('\n'), success: () => wx.showToast({ title: `成功复制 ${emptyWords.length} 个单词`, icon: 'success', duration: 1500 }) });
                 }
             },
 
