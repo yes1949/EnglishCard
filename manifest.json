@@ -1,20 +1,19 @@
 {
-  "name": "单词学习与复习",
-  "short_name": "单词学习",
+  "name": "EC Vocabulary",
+  "short_name": "EC",
+  "description": "EC 单词卡片与错题本",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f4f4f4",
-  "theme_color": "#007bff",
-  "orientation": "portrait-primary",
-  "description": "一个本地单词导入、复习和管理工具",
+  "background_color": "#f5f7fa",
+  "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
