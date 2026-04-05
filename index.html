@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.13';</script>
+    <script>const APP_VERSION = 'v1.14';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -1075,7 +1075,7 @@
                 nextWord() {
                     if (this.data.state.queue.length === 0) {
                         if (this.data.state.roundErrors && this.data.state.roundErrors.length > 0) {
-                            wx.showToast({title: '进入本轮错题复习环节', icon: 'info'});
+                            
                             this.data.state.isErrorReviewPhase = true;
                             this.data.state.queue = [...this.data.state.roundErrors].sort(() => Math.random() - 0.5);
                             this.data.state.totalM = this.data.state.queue.length;
