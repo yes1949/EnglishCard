@@ -2,446 +2,133 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v3.8';</script>
-    
+    <script>const APP_VERSION = 'v1.0';</script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
     <link rel="manifest" href="./manifest.json">
     <style>
         /* --- 全局和基础样式 --- */
-        :root {
-            --safe-area-bottom: env(safe-area-inset-bottom, 20px);
-        }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow-x: hidden;
-            background-color: #f5f7fa;
-            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-            max-width: 80vw;
-            margin: 0 auto;
-        }
+        :root { --safe-area-bottom: env(safe-area-inset-bottom, 20px); }
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow-x: hidden; background-color: #f5f7fa; font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif; }
+        body { display: flex; flex-direction: column; box-sizing: border-box; max-width: 80vw; margin: 0 auto; }
 
         /* --- 页面容器和导航 --- */
-        .page-container {
-            display: none; /* 默认隐藏所有页面 */
-            flex-direction: column;
-            min-height: calc(100vh - 80px);
-            padding: 1vw; /* 基础padding */
-            box-sizing: border-box;
-            padding-top: 80px; /* 为固定导航留出空间 */
-        }
-
-        .page-container.active {
-            display: flex; /* 显示当前活动页面 */
-        }
-
+        .page-container { display: none; flex-direction: column; min-height: calc(100vh - 80px); padding: 1vw; box-sizing: border-box; padding-top: 80px; }
+        .page-container.active { display: flex; }
+        
         .app-nav {
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 80vw;
-            display: flex;
-            justify-content: space-around;
-            background-color: #ffffff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 5000;
-            padding: 10px 0;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 80vw;
+            display: flex; justify-content: space-around; background-color: #ffffff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 5000; padding: 10px 0; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
         }
-
-        .nav-btn {
-            background: none;
-            border: none;
-            padding: 10px 15px;
-            font-size: 16px;
-            color: #666;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 20px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .nav-btn.active {
-            background-color: #eee;
-            color: white;
-        }
+        .nav-btn { background: none; border: none; padding: 10px 1vw; font-size: 14px; color: #666; font-weight: bold; cursor: pointer; border-radius: 20px; transition: 0.3s; flex: 1; text-align: center; white-space: nowrap;}
+        .nav-btn.active { background-color: #eee; color: #333; }
 
         /* --- 通用组件 --- */
-        .toast {
-            position: fixed;
-            bottom: calc(34.67vw + var(--safe-area-bottom) + 1.5cm);
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 2.67vw 5.33vw;
-            border-radius: 3.2vw;
-            font-size: 3.73vw;
-            z-index: 9999;
-            user-select: none;
-            text-align: center;
-            animation: toastFadeIn 0.3s ease;
-            max-width: 85%;
-            box-sizing: border-box;
-        }
+        .toast { position: fixed; bottom: calc(34.67vw + var(--safe-area-bottom) + 1.5cm); left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 2.67vw 5.33vw; border-radius: 3.2vw; font-size: 3.73vw; z-index: 9999; user-select: none; text-align: center; animation: toastFadeIn 0.3s ease; max-width: 85%; box-sizing: border-box; }
+        @keyframes toastFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(20%); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        .toast.success { background: #4caf50; } .toast.error { background: #f44336; } .toast.info { background: #2196f3; }
 
-        @keyframes toastFadeIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(20%); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        .toast.success { background: #4caf50; }
-        .toast.error { background: #f44336; }
-        .toast.info { background: #2196f3; }
-
-        .btn {
-            flex: 1;
-            border-radius: 6.67vw;
-            font-size: 3.4vw;
-            height: 11.73vw;
-            line-height: 11.73vw;
-            box-shadow: 0 0.53vw 1.07vw rgba(0, 0, 0, 0.1);
-            text-align: center;
-            border: none;
-            font-weight: bold;
-            color: white;
-            user-select: none;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            padding: 0 1vw;
-        }
+        .btn { flex: 1; border-radius: 6.67vw; font-size: 3.4vw; height: 11.73vw; line-height: 11.73vw; box-shadow: 0 0.53vw 1.07vw rgba(0, 0, 0, 0.1); text-align: center; border: none; font-weight: bold; color: white; user-select: none; cursor: pointer; transition: opacity 0.2s; padding: 0 1vw; }
         .btn:active { opacity: 0.8; }
-        .delete { background-color: #eee; }
-        .mark { background-color: #eee; }
-        .spell { background-color: #eee; }
-        .travel { background-color: #eee; }
-        .draw {
-            background-color: #eee;
-            width: 100%;
-            font-size: 4vw;
-            border-radius: 8vw;
-        }
+        .delete { background-color: #eee; color: #333;} .mark { background-color: #eee; color: #333;} .spell { background-color: #eee; color: #333;} .travel { background-color: #eee; color: #333;}
+        .draw { background-color: #eee; width: 100%; font-size: 4vw; border-radius: 8vw; color: #333; }
 
-        /* --- 页面1 (抽卡) 样式 --- */
-        #page1 { align-items: center; }
-        .flex-grow { flex-grow: 1; }
-        
-        .stats-card {
-            background-color: #ffffff;
-            border-radius: 2.67vw;
-            box-shadow: 0 0.53vw 1.6vw rgba(0, 0, 0, 0.05);
-            padding: 3.73vw;
-            margin: 0 auto; 
-            width: 100%; 
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-sizing: border-box;
-        }
-        .statistics {
-            margin: 1.07vw 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: nowrap;
-        }
-        .label { font-size: 3.73vw; color: #666; user-select: none; }
-        .value { font-size: 4.27vw; font-weight: bold; color: #00bcd4; margin: 0 0.8vw; user-select: text; }
-        
-        .bottom-fixed-section {
-            position: fixed;
-            bottom: 1.5cm;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 80vw;
-            padding: 0 2.13vw calc(6.67vw + var(--safe-area-bottom));
-            box-sizing: border-box;
-            background-color: transparent;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .card-display {
-            width: 100%;
-            min-height: 32vw;
-            max-height: 72.67vw;
-            padding: 1.07vw 0;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .card-content { 
-            font-size: 4.27vw; 
-            line-height: 1.6; 
-            color: #333; 
-            text-align: center; 
-            word-break: break-word; 
-            user-select: text; 
-            padding: 0 5.5vw; 
-            display: inline-block; 
-            box-sizing: border-box;
-        }
+        /* --- 页面1 (抽卡) --- */
+        #page1 { align-items: center; } .flex-grow { flex-grow: 1; }
+        .stats-card { background-color: #ffffff; border-radius: 2.67vw; box-shadow: 0 0.53vw 1.6vw rgba(0, 0, 0, 0.05); padding: 3.73vw; margin: 0 auto; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }
+        .statistics { margin: 1.07vw 0; display: flex; justify-content: center; align-items: center; flex-wrap: nowrap; }
+        .label { font-size: 3.73vw; color: #666; user-select: none; } .value { font-size: 4.27vw; font-weight: bold; color: #00bcd4; margin: 0 0.8vw; user-select: text; }
+        .bottom-fixed-section { position: fixed; bottom: 1.5cm; left: 50%; transform: translateX(-50%); width: 100%; max-width: 80vw; padding: 0 2.13vw calc(6.67vw + var(--safe-area-bottom)); box-sizing: border-box; background-color: transparent; display: flex; flex-direction: column; align-items: center; }
+        .card-display { width: 100%; min-height: 32vw; max-height: 72.67vw; padding: 1.07vw 0; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+        .card-content { font-size: 4.27vw; line-height: 1.6; color: #333; text-align: center; word-break: break-word; user-select: text; padding: 0 5.5vw; display: inline-block; box-sizing: border-box; }
         .button-group { width: 100%; display: flex; flex-direction: column; gap: 2.13vw; padding-bottom: 0.67vw; box-sizing: border-box; }
         .button-row { display: flex; justify-content: space-between; gap: 1.6vw; width: 100%; }
         
-        /* Dialogs */
         .dialog-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000; }
         .dialog-container { width: 80%; background: #fff; border-radius: 3.2vw; overflow: hidden; box-shadow: 0 1.33vw 4vw rgba(0, 0, 0, 0.2); }
         .dialog-header { padding: 4vw; font-size: 4.8vw; font-weight: bold; text-align: center; background-color: #f8f8f8; border-bottom: 1px solid #eee; color: #2c3e50; }
         .dialog-body { padding: 6.67vw 4vw; text-align: center; font-size: 4.27vw; color: #555; line-height: 1.6; }
         .dialog-footer { display: flex; border-top: 1px solid #eee; }
         .dialog-footer button { flex: 1; margin: 0; padding: 3.33vw 0; border-radius: 0; font-size: 4.27vw; background: #fff; border: none; cursor: pointer; }
-        .btn-cancel { color: #666; border-right: 1px solid #eee; }
-        .btn-confirm { color: #e64340; font-weight: bold; }
-        .spell-dialog-container { width: 90%; max-width: 80vw; background: #fff; border-radius: 3.2vw; overflow: hidden; box-shadow: 0 1.33vw 4vw rgba(0, 0, 0, 0.2); }
-        .spell-dialog-header { padding: 4vw; font-size: 4.8vw; font-weight: bold; text-align: center; background-color: #9b59b6; color: white; }
-        .spell-dialog-body { padding: 5.33vw 4vw; }
-        .spell-input-container { position: relative; margin-bottom: 5.33vw; }
-        .spell-input { width: 100%; height: 13.33vw; border: 0.27vw solid #ddd; border-radius: 1.6vw; padding: 0 2.67vw; font-size: 4.8vw; text-align: center; transition: border-color 0.3s; box-sizing: border-box; }
-        .spell-input.error { border-color: #e74c3c; }
-        .spell-error-msg { color: #e74c3c; font-size: 3.73vw; text-align: center; margin-top: 2.67vw; }
-        .spell-correct-msg { color: #2ecc71; font-size: 4.27vw; font-weight: bold; text-align: center; margin-top: 2.67vw; }
-
-        /* --- 页面2 (管理) 样式 --- */
-        #page2 {
-            justify-content: flex-start; 
-            align-items: center; 
-        }
-
-        .page2-content-wrapper {
-            width: 100%;
-            max-width: 80vw;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-sizing: border-box;
-            padding: 20px 0;
-            gap: 20px;
-        }
+        .btn-cancel { color: #666; border-right: 1px solid #eee; } .btn-confirm { color: #e64340; font-weight: bold; }
         
-        /* 顶部搜索占位容器，预留出完整的卡片空间避免抖动 */
-        .search-area-placeholder {
-            width: 100%;
-            min-height: 190px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 顶部搜索条样式（横线输入） */
-        .search-box {
-            width: 100%;
-            height: 40px;
-            border: none;
-            border-bottom: 2px solid #cccccc;
-            border-radius: 0;
-            padding: 0 10px;
-            font-size: 16px;
-            box-sizing: border-box;
-            background-color: transparent;
-            box-shadow: none;
-            transition: border-bottom-color 0.3s;
-        }
-        .search-box:focus { border-bottom-color: #007AFF; box-shadow: none; outline: none; }
+        .card-content-container { position: relative; display: inline-block; z-index: 1; }
+        .card-text { position: relative; z-index: 2; }
+        .word-count { position: absolute; top: -8px; right: -8px; font-size: 2.67vw; color: #999; border-radius: 50%; width: 4.8vw; height: 4.8vw; display: flex; align-items: center; justify-content: center; box-sizing: border-box; z-index: 3; }
         
-        .search-result-container {
-            width: 100%;
-            background: #fff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-            text-align: left;
-            font-size: 14px;
-            color: #333;
-        }
+        .filter-section { width: 50%; margin: 0.5vw auto 0.5vw auto; padding: 0; background-color: transparent; box-shadow: none; display: flex; flex-wrap: nowrap; justify-content: center; gap: 2.5vw; box-sizing: border-box; }
+        .filter-dot { width: 7vw; height: 7vw; line-height: 7vw; border-radius: 50%; background-color: #eee; color: #555; font-size: 3.2vw; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); user-select: none; flex: 0 0 calc((100% - 3 * 2.5vw) / 4); max-width: calc((100% - 3 * 2.5vw) / 4); }
+        .filter-dot.selected { background-color: #eee; color: white; transform: scale(1.1); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
+        .progress-display { font-size: 3.73vw; color: #666; text-align: center; margin-top: 0.5vw; min-height: 20px; user-select: text; }
+
+        /* --- 页面2 (管理) --- */
+        #page2 { justify-content: flex-start; align-items: center; }
+        .page2-content-wrapper { width: 100%; max-width: 80vw; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; padding: 20px 0; gap: 20px; }
+        .search-area-placeholder { width: 100%; min-height: 190px; display: flex; flex-direction: column; }
+        .search-box { width: 100%; height: 40px; border: none; border-bottom: 2px solid #cccccc; border-radius: 0; padding: 0 10px; font-size: 16px; box-sizing: border-box; background-color: transparent; box-shadow: none; transition: border-bottom-color 0.3s; }
+        .search-box:focus { border-bottom-color: #007AFF; outline: none; }
+        .search-result-container { width: 100%; background: #fff; border-radius: 8px; padding: 15px; margin-top: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); box-sizing: border-box; text-align: left; font-size: 14px; color: #333; }
         .search-result-word { font-size: 18px; font-weight: bold; margin-bottom: 10px; text-align: center; }
         .search-result-info { margin-bottom: 6px; }
         .review-curve span { margin-right: 5px; font-weight: bold; }
-        .review-curve .done { color: #2ecc71; }
-        .review-curve .pending { color: #333; }
-        .search-delete-btn {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 15px;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        .search-delete-btn:active { opacity: 0.8; transform: scale(0.98); }
-
-        /* 单词输入框 */
-        .input-box {
-            width: 100%;
-            height: 160px; 
-            border: 1px solid #cccccc;
-            border-radius: 5px;
-            padding: 10px 14px;
-            font-size: 15px;
-            box-shadow: inset 0 0.27vw 0.8vw rgba(0, 0, 0, 0.06);
-            color: #333333;
-            transition: border-color 0.3s ease;
-            box-sizing: border-box;
-        }
-        .input-box:focus { border-color: #007AFF; box-shadow: 0 0 0.8vw #007AFF; outline: none; }
-        
+        .review-curve .done { color: #2ecc71; } .review-curve .pending { color: #ccc; }
+        .search-delete-btn { background-color: #f44336; color: white; border: none; border-radius: 5px; padding: 10px 15px; font-size: 14px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        .input-box { width: 100%; height: 160px; border: 1px solid #cccccc; border-radius: 5px; padding: 10px 14px; font-size: 15px; box-shadow: inset 0 0.27vw 0.8vw rgba(0, 0, 0, 0.06); color: #333333; box-sizing: border-box; }
         .top-btn-row { display: flex; justify-content: center; align-items: center; width: 100%; gap: 1.6vw; }
-        #page2 .btn { font-size: 3.73vw; height: 11vw; line-height: 11vw;}
-        .save-btn { background: linear-gradient(135deg, #409ef0, #136cf1); box-shadow: 0 0.8vw 1.6vw rgba(0, 130, 255, 0.4); }
-        .right-copy { background: linear-gradient(135deg, #4caf50, #43a047); }
-        .export-btn { background: linear-gradient(135deg, #607d8b, #455a64); }
-        .import-btn { background: linear-gradient(135deg, #ff9800, #f57c00); }
-        #page2 .btn:active { transform: scale(0.97); opacity: 0.85; }
-        
+        .save-btn { background: linear-gradient(135deg, #409ef0, #136cf1); } .right-copy { background: linear-gradient(135deg, #4caf50, #43a047); } .export-btn { background: linear-gradient(135deg, #607d8b, #455a64); } .import-btn { background: linear-gradient(135deg, #ff9800, #f57c00); }
         .save-status { font-size: 4.27vw; color: #2ecc71; min-height: 20px; font-weight: bold; margin-bottom: -5px;}
         .version-info { font-size: 3.2vw; color: #aaa; text-align: center; }
 
-        /* --- 页面3 (已标记) 样式 --- */
-        #page3 { justify-content: flex-start; align-items: center; }
-        .marked-words-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2.67vw;
-            justify-content: center;
-            width: 100%;
-            padding-bottom: calc(15vw + var(--safe-area-bottom)); 
-        }
-        .marked-word { display: inline-flex; justify-content: center; align-items: center; padding: 1.87vw 3.2vw; font-size: 4.27vw; border-radius: 5.33vw; background-color: #00bcd4; color: white; user-select: text; cursor: pointer; white-space: nowrap; box-sizing: border-box; transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; }
+        /* --- 页面3 (回顾) --- */
+        #page3 { align-items: center; justify-content: flex-start; padding-top: 100px; gap: 20px;}
+        .spell-top-bar { display: flex; width: 100%; gap: 10px; justify-content: space-between; }
+        .spell-btn-top { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; }
+        .spell-btn-top.active { background-color: #007AFF; color: #fff;}
+        .spell-meaning-area { width: 100%; min-height: 40px; text-align: center; font-size: 16px; color: #555; word-wrap: break-word; padding: 10px; box-sizing: border-box;}
+        .spell-hint-area { width: 100%; height: 30px; text-align: center; font-size: 20px; font-weight: bold; color: #e74c3c; line-height: 30px; }
+        .spell-input-line { width: 100%; border: none; border-bottom: 2px solid #333; background: transparent; font-size: 24px; text-align: center; padding: 10px 5px; outline: none; }
+        .spell-input-line:focus { border-bottom-color: #007AFF; }
+        .spell-progress { width: 100%; text-align: center; font-size: 14px; color: #aaa; margin-top: 5px; }
+        .spell-progress-wrong { color: #e74c3c; font-weight: bold; margin-left: 10px; font-size: 16px;}
+        .spell-bottom-bar { display: flex; width: 100%; gap: 15px; margin-top: 30px; }
+        .spell-btn-bot { flex: 1; height: 45px; background-color: #f0f0f0; border: none; border-radius: 25px; font-weight: bold; color: #333; cursor: pointer; }
+        
+        .mode-select-dialog { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 80vw; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: none; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 10001; }
+        .mode-select-dialog button { margin-bottom: 10px; padding: 15px; font-size: 16px; border: none; background: #eee; border-radius: 10px; font-weight: bold;}
+        .mode-select-dialog button:last-child { margin-bottom: 0; }
+
+        /* --- 页面4 (已标记) --- */
+        #page4 { justify-content: flex-start; align-items: center; }
+        .marked-words-container { display: flex; flex-wrap: wrap; gap: 2.67vw; justify-content: center; width: 100%; padding-bottom: calc(15vw + var(--safe-area-bottom)); }
+        .marked-word { display: inline-flex; justify-content: center; align-items: center; padding: 1.87vw 3.2vw; font-size: 4.27vw; border-radius: 5.33vw; background-color: #00bcd4; color: white; user-select: text; cursor: pointer; white-space: nowrap; box-sizing: border-box; transition: 0.3s; }
         .marked-word.selected { background-color: #f39c12; transform: scale(1.05); box-shadow: 0 0.53vw 1.6vw rgba(0, 0, 0, 0.1); }
         .no-marked { font-size: 3.73vw; color: #999; text-align: center; padding-bottom: calc(15vw + var(--safe-area-bottom)); width: 100%;}
-        
-        .page3-top-action {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin: 15px 0 25px 0;
-        }
+        .page4-top-action { width: 100%; display: flex; justify-content: center; margin: 15px 0 25px 0; }
+        .page4-action-container { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 80%; max-width: 80vw; z-index: 999; display: none; gap: 15px; padding: 20px 0; padding-bottom: calc(20px + var(--safe-area-bottom)); }
 
-        .page3-action-container {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            max-width: 80vw;
-            z-index: 999;
-            display: none; 
-            gap: 15px; 
-            padding: 20px 0;
-            padding-bottom: calc(20px + var(--safe-area-bottom));
-        }
-        .btn-p3-action { flex: 1; height: 11.73vw; line-height: 11.73vw; font-size: 4.27vw; border-radius: 5.87vw; text-align: center; font-weight: bold; user-select: none; border: none; color: white; }
+        /* --- 页面5 (展馆) --- */
+        #page5 { justify-content: flex-start; align-items: center; }
+        .gallery-container { display: flex; flex-wrap: wrap; gap: 2.67vw; justify-content: center; width: 100%; padding-bottom: calc(25vw + var(--safe-area-bottom)); }
+        .gallery-word { display: inline-flex; justify-content: center; align-items: center; padding: 1.87vw 3.2vw; font-size: 4.27vw; border-radius: 5.33vw; background-color: #e74c3c; color: white; user-select: text; cursor: pointer; white-space: nowrap; box-sizing: border-box; transition: 0.3s; }
+        .gallery-word.selected { background-color: #c0392b; transform: scale(1.05); box-shadow: 0 0.53vw 1.6vw rgba(0, 0, 0, 0.2); }
+        .page5-action-container { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 80%; max-width: 80vw; z-index: 999; display: none; gap: 10px; padding: 20px 0; padding-bottom: calc(20px + var(--safe-area-bottom)); }
 
-        /* 新增的单词计数和天数样式 */
-        .card-content-container {
-            position: relative;
-            display: inline-block;
-            z-index: 1; 
-        }
-        
-        .card-text {
-            position: relative;
-            z-index: 2; 
-        }
-
-        .word-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            font-size: 2.67vw;
-            color: #999;
-            border-radius: 50%;
-            width: 4.8vw;
-            height: 4.8vw;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            z-index: 3; 
-        }
-
-        /* ----------------------- 新增筛选框样式 ----------------------- */
-        .filter-section {
-            width: 50%; 
-            margin: 0.5vw auto 0.5vw auto; 
-            padding: 0; 
-            background-color: transparent; 
-            box-shadow: none; 
-            display: flex;
-            flex-wrap: nowrap; 
-            justify-content: center; 
-            gap: 2.5vw; 
-            box-sizing: border-box; 
-        }
-
-        .filter-dot {
-            width: 7vw; 
-            height: 7vw;
-            line-height: 7vw; 
-            border-radius: 50%;
-            background-color: #eee;
-            color: #555;
-            font-size: 3.2vw;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s, transform 0.2s;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
-            user-select: none;
-            flex: 0 0 calc((100% - 3 * 2.5vw) / 4); 
-            max-width: calc((100% - 3 * 2.5vw) / 4); 
-        }
-
-        .filter-dot.selected {
-            background-color: #eee; 
-            color: white;
-            transform: scale(1.1); 
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .progress-display {
-            font-size: 3.73vw;
-            color: #666;
-            text-align: center;
-            margin-top: 0.5vw; 
-            min-height: 20px; 
-            user-select: text;
-        }
     </style>
 </head>
 <body>
     <nav class="app-nav">
         <button id="nav-btn-1" class="nav-btn active">抽卡</button>
         <button id="nav-btn-2" class="nav-btn">管理</button>
-        <button id="nav-btn-3" class="nav-btn">已标记</button>
+        <button id="nav-btn-3" class="nav-btn">回顾</button>
+        <button id="nav-btn-4" class="nav-btn">已标记</button>
+        <button id="nav-btn-5" class="nav-btn">展馆</button>
     </nav>
 
     <div id="page1" class="page-container active">
         <div class="filter-section" id="pastdayFilterSection"></div>
         <div id="progressDisplay" class="progress-display"></div>
-
         <div class="flex-grow"></div>
         <div class="bottom-fixed-section">
             <div class="card-display"><span class="card-content" id="displayContent">暂无内容，请添加</span></div>
@@ -449,7 +136,6 @@
                 <div class="button-row">
                     <button class="btn delete" id="deleteContentBtn">删除</button>
                     <button class="btn mark" id="markwordBtn">标记</button>
-                    <button class="btn spell" id="openSpellCheckBtn">检查</button>
                     <button class="btn travel" id="travelBtn">穿越</button>
                 </div>
                 <button class="btn draw" id="drawOneBtn">下一张</button>
@@ -465,17 +151,6 @@
                 </div>
             </div>
         </div>
-        <div id="spellCheckDialog" class="dialog-mask" style="display: none;">
-            <div class="spell-dialog-container" onclick="event.stopPropagation()">
-                <div class="spell-dialog-header"></div>
-                <div class="spell-dialog-body">
-                    <div class="spell-input-container">
-                        <input id="spellInput" class="spell-input" placeholder="正在检查..." value="">
-                        <div id="spellMessageContainer"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div id="page2" class="page-container">
@@ -484,9 +159,7 @@
                 <input type="text" id="searchInput" class="search-box" placeholder="点击此处输入查询单词">
                 <div id="searchResult" class="search-result-container" style="display:none;"></div>
             </div>
-
             <textarea id="inputContent" class="input-box" placeholder="每行输入一个单词。\n格式: 单词:释义 (或中文冒号：)\n例如:\napple\nbanana:n.香蕉"></textarea>
-            
             <div class="top-btn-row">
                 <button id="exportBtn" class="btn export-btn">导出</button>
                 <input type="file" id="importInput" accept=".txt" style="display:none">
@@ -494,9 +167,7 @@
                 <button id="copyAllBtn" class="btn right-copy">复制</button>
                 <button id="saveCardBtn" class="btn save-btn">保存</button>
             </div>
-            
             <span id="saveStatus" class="save-status"></span>
-
             <div class="stats-card">
                 <div class="statistics"><span class="label">🔥 今天已刷</span><span class="value" id="todaySwipeCount">0</span><span class="label">次！</span></div>
                 <div class="statistics"><span class="label">🔁 总共刷了</span><span class="value" id="swipeCount">0</span><span class="label">次！</span></div>
@@ -507,18 +178,57 @@
     </div>
 
     <div id="page3" class="page-container">
-        <div class="page3-top-action">
+        <div class="spell-top-bar">
+            <button id="spellSelectBtn" class="spell-btn-top">选择</button>
+            <button id="spellReviewBtn" class="spell-btn-top">复习 (0)</button>
+            <button id="spellErrorBtn" class="spell-btn-top">错题</button>
+        </div>
+        <div id="spellMeaningDisplay" class="spell-meaning-area">请选择上方的模式开始拼写</div>
+        <div id="spellHintDisplay" class="spell-hint-area"></div>
+        <input type="text" id="spellInputField" class="spell-input-line" placeholder="输入拼写后回车" disabled>
+        <div id="spellProgressDisplay" class="spell-progress" style="display:none;">
+            <span id="spellProgressNM">0/0</span>
+            <span id="spellProgressJ" class="spell-progress-wrong">0</span>
+        </div>
+        <div class="spell-bottom-bar">
+            <button id="spellRestartBtn" class="spell-btn-bot">重来</button>
+            <button id="spellTravelBtnPage3" class="spell-btn-bot">穿越</button>
+        </div>
+        
+        <div id="modeSelectMask" class="dialog-mask" style="display: none;" onclick="document.getElementById('modeSelectMask').style.display='none'">
+            <div class="mode-select-dialog" onclick="event.stopPropagation()">
+                <button data-mode="A">模式 A (全部单词)</button>
+                <button data-mode="0">模式 0</button>
+                <button data-mode="1">模式 1</button>
+                <button data-mode="-1">模式 -1</button>
+                <button data-mode="E">模式 E (全量错题本)</button>
+                <button onclick="document.getElementById('modeSelectMask').style.display='none'" style="background:#f44336; color:white; margin-top:10px;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page4" class="page-container">
+        <div class="page4-top-action">
             <button id="copyEmptyMeaningBtn" class="btn" style="background-color: #8e44ad; padding: 0 20px; width: auto; flex: none;">复制无释义单词</button>
         </div>
-
         <div id="noMarkedMessage" class="no-marked" style="display: none;">暂无标记内容</div>
         <div id="markedWordsContainer" class="marked-words-container"></div>
-        <div id="page3ActionContainer" class="page3-action-container">
-            <button id="deleteMarkedBtn" class="btn-p3-action delete">删除</button>
-            <button id="travelMarkedBtn" class="btn-p3-action travel">穿越</button>
+        <div id="page4ActionContainer" class="page4-action-container">
+            <button id="deleteMarkedBtn" class="btn delete" style="background:#f44336; color:white;">删除</button>
+            <button id="travelMarkedBtn" class="btn travel">穿越</button>
         </div>
     </div>
     
+    <div id="page5" class="page-container">
+        <div id="noGalleryMessage" class="no-marked" style="display: none;">错题本空空如也，太棒了！</div>
+        <div id="galleryWordsContainer" class="gallery-container"></div>
+        <div id="page5ActionContainer" class="page5-action-container">
+            <button id="deleteGalleryBtn" class="btn" style="background:#e67e22;">删除</button>
+            <button id="clearGalleryBtn" class="btn" style="background:#c0392b;">初始化</button>
+            <button id="travelGalleryBtn" class="btn" style="background:#eee; color:#333;">穿越</button>
+        </div>
+    </div>
+
     <div id="toast" class="toast" style="display: none;"></div>
 
     <script>
@@ -560,48 +270,34 @@
             page1: document.getElementById('page1'),
             page2: document.getElementById('page2'),
             page3: document.getElementById('page3'),
+            page4: document.getElementById('page4'),
+            page5: document.getElementById('page5'),
         };
         const navButtons = {
             btn1: document.getElementById('nav-btn-1'),
             btn2: document.getElementById('nav-btn-2'),
             btn3: document.getElementById('nav-btn-3'),
+            btn4: document.getElementById('nav-btn-4'),
+            btn5: document.getElementById('nav-btn-5'),
         };
         
-        let touchStartX = 0;
-        let currentPageIndex = 1;
-        const swipeThreshold = 50; 
+        const NEWLINE_REPLACEMENT = '##NEWLINE##';
+        const ERROR_SCHEDULE = [1, 2, 4, 7, 15, 30, 45, 60, 75, 90];
 
-        function handleTouchStart(event) {
-            const targetNode = event.target.nodeName.toUpperCase();
-            if (document.getElementById('confirmDialog').style.display !== 'none' ||
-                document.getElementById('spellCheckDialog').style.display !== 'none' ||
-                ['INPUT', 'TEXTAREA', 'BUTTON'].includes(targetNode) ||
-                event.target.closest('.filter-dot')) { 
-                touchStartX = 0;
-                return;
-            }
-            touchStartX = event.changedTouches[0].screenX;
+        // 帮助函数：计算两个日期的天数差
+        function getDaysDiff(dateStr1, dateStr2) {
+            const d1 = new Date(dateStr1);
+            const d2 = new Date(dateStr2);
+            d1.setHours(0,0,0,0);
+            d2.setHours(0,0,0,0);
+            return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
         }
-
-        function handleTouchEnd(event) {
-            if (touchStartX === 0) return;
-            const touchEndX = event.changedTouches[0].screenX;
-            const diffX = touchEndX - touchStartX;
-
-            if (diffX < -swipeThreshold && currentPageIndex < 3) { navigateTo(`page${currentPageIndex + 1}`); }
-            else if (diffX > swipeThreshold && currentPageIndex > 1) { navigateTo(`page${currentPageIndex - 1}`); }
-            touchStartX = 0;
-        }
-
-        document.body.addEventListener('touchstart', handleTouchStart, false);
-        document.body.addEventListener('touchend', handleTouchEnd, false);
 
         function navigateTo(pageId) {
             Object.values(pages).forEach(p => p.classList.remove('active'));
             Object.values(navButtons).forEach(b => b.classList.remove('active'));
             pages[pageId].classList.add('active');
             navButtons['btn' + pageId.slice(-1)].classList.add('active');
-            currentPageIndex = parseInt(pageId.slice(-1));
             const handler = app[pageId];
             if (handler && typeof handler.onShow === 'function') {
                 handler.onShow();
@@ -610,41 +306,47 @@
         navButtons.btn1.addEventListener('click', () => navigateTo('page1'));
         navButtons.btn2.addEventListener('click', () => navigateTo('page2'));
         navButtons.btn3.addEventListener('click', () => navigateTo('page3'));
-
-        const NEWLINE_REPLACEMENT = '##NEWLINE##';
+        navButtons.btn4.addEventListener('click', () => navigateTo('page4'));
+        navButtons.btn5.addEventListener('click', () => navigateTo('page5'));
 
         const app = {
+            // =================================== 全局系统数据初始化 ===================================
+            globalInit() {
+                const todayStr = new Date().toLocaleDateString('en-CA');
+                
+                // 1. 初始化今日错题队列
+                if (wx.getStorageSync('lastErrorTodayDate') !== todayStr) {
+                    wx.setStorageSync('errorToday', []);
+                    wx.setStorageSync('lastErrorTodayDate', todayStr);
+                }
+
+                // 2. 更新复习队列 (reviewToday)
+                let errorBook = wx.getStorageSync('errorBook') || [];
+                let reviewToday = [];
+                errorBook.forEach(item => {
+                    const diff = getDaysDiff(item.lastReviewDate, todayStr);
+                    const targetDays = ERROR_SCHEDULE[item.reviewLevel] || 90;
+                    if (diff >= targetDays) {
+                        reviewToday.push(item.word);
+                    }
+                });
+                wx.setStorageSync('reviewToday', reviewToday);
+                document.getElementById('spellReviewBtn').textContent = `复习 (${reviewToday.length})`;
+            },
+
             // =================================== PAGE 1: 抽卡 ===================================
             page1: {
                 data: { 
-                    displayContent: '', 
-                    currentIndex: -1, 
-                    isChecking: false, 
-                    cardCount: 0, 
-                    swipeCount: 0, 
-                    todaySwipeCount: 0,
-                    
-                    currentMode: 'A', // 'A', '0', '1', '-1'
-                    
-                    // 模式0 (allword) 进度
+                    displayContent: '', currentIndex: -1, cardCount: 0, swipeCount: 0, todaySwipeCount: 0,
+                    currentMode: 'A',
                     i: 0, j: 0, k: 0, allword: [], allword1: [], 
-                    // 模式1 (todayword) 进度
                     x: 0, n: 0, m: 0, todayword: [], todayword1: [], 
-                    // 模式-1 (todayNewWord) 进度
                     y: 0, z: 0, p: 0, todayNewWord: [], todayNewWord1: [], 
                 },
                 elements: {
-                    todaySwipeCount: document.getElementById('todaySwipeCount'), 
-                    swipeCount: document.getElementById('swipeCount'), 
-                    cardCount: document.getElementById('cardCount'),
-                    
-                    displayContent: document.getElementById('displayContent'), 
-                    confirmDialog: document.getElementById('confirmDialog'),
-                    spellCheckDialog: document.getElementById('spellCheckDialog'), 
-                    spellInput: document.getElementById('spellInput'), 
-                    spellMessageContainer: document.getElementById('spellMessageContainer'),
-                    pastdayFilterSection: document.getElementById('pastdayFilterSection'), 
-                    progressDisplay: document.getElementById('progressDisplay') 
+                    todaySwipeCount: document.getElementById('todaySwipeCount'), swipeCount: document.getElementById('swipeCount'), cardCount: document.getElementById('cardCount'),
+                    displayContent: document.getElementById('displayContent'), confirmDialog: document.getElementById('confirmDialog'),
+                    pastdayFilterSection: document.getElementById('pastdayFilterSection'), progressDisplay: document.getElementById('progressDisplay') 
                 },
                 filterOptions: ['A', '0', '1', '-1'], 
                 TODAY_PASTDAYS_FILTER: [0, 1, 4, 7, 15, 30, 60, 90, 120],
@@ -656,12 +358,11 @@
                     this.onShow(); 
                 },
                 onShow() {
-                    // 修复跨天挂机不刷新的bug，每次切回此页面都检验一下时间
                     const todayStr = new Date().toLocaleDateString('en-CA');
                     if (wx.getStorageSync('lastInitDate') !== todayStr) {
                         this.handleDailyDataInitialization();
+                        app.globalInit();
                     }
-                    
                     this.updateStatistics(); 
                     this.data.swipeCount = wx.getStorageSync('swipeCount') || 0; 
                     this.elements.swipeCount.textContent = this.data.swipeCount; 
@@ -674,18 +375,14 @@
                     document.getElementById('drawOneBtn').addEventListener('click', () => this.drawOne());
                     document.getElementById('deleteContentBtn').addEventListener('click', () => this.deleteContent());
                     document.getElementById('markwordBtn').addEventListener('click', () => this.markword());
-                    document.getElementById('openSpellCheckBtn').addEventListener('click', () => this.openSpellCheck());
                     document.getElementById('travelBtn').addEventListener('click', () => this.travelToEudic());
                     document.getElementById('confirmDialog').addEventListener('click', () => this.cancelDelete());
                     document.getElementById('cancelDeleteBtn').addEventListener('click', () => this.cancelDelete());
                     document.getElementById('confirmDeleteBtn').addEventListener('click', () => this.confirmDelete());
-                    document.getElementById('spellCheckDialog').addEventListener('click', () => this.closeSpellCheck());
-                    this.elements.spellInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.checkSpelling(); });
-
+                    
                     this.elements.pastdayFilterSection.addEventListener('click', (e) => {
                         if (e.target.classList.contains('filter-dot')) {
-                            const mode = e.target.dataset.value;
-                            this.changeMode(mode);
+                            this.changeMode(e.target.dataset.value);
                         }
                     });
                 },
@@ -695,8 +392,7 @@
                         const dot = document.createElement('div');
                         dot.classList.add('filter-dot');
                         if (this.data.currentMode === value) dot.classList.add('selected');
-                        dot.textContent = value; 
-                        dot.dataset.value = value;
+                        dot.textContent = value; dot.dataset.value = value;
                         this.elements.pastdayFilterSection.appendChild(dot);
                     });
                 },
@@ -708,20 +404,15 @@
                     this.getRandomContent(false); 
                     this.updateProgressDisplay(); 
                 },
-                
                 handleDailyDataInitialization() {
                     const today = new Date().toLocaleDateString('en-CA');
                     const lastInitDate = wx.getStorageSync('lastInitDate');
-
                     let cards = wx.getStorageSync('myCards') || [];
                     let updated = false;
 
                     if (lastInitDate !== today) {
                         cards = cards.map(card => {
-                            if (card.createDate !== today) { 
-                                card.pastday += 1;
-                                updated = true;
-                            }
+                            if (card.createDate !== today) { card.pastday += 1; updated = true; }
                             return card;
                         });
                         if (updated) wx.setStorageSync('myCards', cards);
@@ -739,17 +430,13 @@
                         this.data.x = 0; this.data.n = 0; this.data.m = 0;
                         this.data.y = 0; this.data.z = 0; this.data.p = 0; 
 
-                        this.data.allword1 = []; 
-                        this.data.todayword1 = []; 
-                        this.data.todayNewWord1 = []; 
-
+                        this.data.allword1 = []; this.data.todayword1 = []; this.data.todayNewWord1 = []; 
                         this.saveProgress(); 
                         wx.setStorageSync('todaySwipeData', { date: today, count: 0 });
                     } else {
                         this.data.allword = [...cards];
                         this.data.todayword = cards.filter(card => this.TODAY_PASTDAYS_FILTER.includes(card.pastday));
                         this.data.todayNewWord = cards.filter(card => card.pastday === 0); 
-
                         this.data.allword1 = wx.getStorageSync('allword1') || [];
                         this.data.todayword1 = wx.getStorageSync('todayword1') || [];
                         this.data.todayNewWord1 = wx.getStorageSync('todayNewWord1') || []; 
@@ -763,9 +450,7 @@
                         this.data.x = savedProgress.x || 0; this.data.n = savedProgress.n || 0; this.data.m = savedProgress.m || 0;
                         this.data.y = savedProgress.y || 0; this.data.z = savedProgress.z || 0; this.data.p = savedProgress.p || 0;
                         this.data.currentMode = savedProgress.currentMode || 'A';
-                    } else {
-                        this.data.currentMode = 'A';
-                    }
+                    } else { this.data.currentMode = 'A'; }
                     this.renderFilterDots(); 
                 },
                 saveProgress() {
@@ -781,7 +466,6 @@
                     wx.setStorageSync('todayword1', this.data.todayword1);
                     wx.setStorageSync('todayNewWord1', this.data.todayNewWord1); 
                 },
-
                 syncTodaySwipeCount() {
                     const swipeData = wx.getStorageSync('todaySwipeData') || {}; 
                     const today = new Date().toLocaleDateString();
@@ -813,143 +497,75 @@
                     }
                     this.elements.progressDisplay.textContent = displayString;
                 },
-
                 getRandomContent(isUserAction = false) { 
-                    // 进一步修复后台挂机跨天不刷新的bug，每次点击下一张也检测
                     const todayStr = new Date().toLocaleDateString('en-CA');
                     if (wx.getStorageSync('lastInitDate') !== todayStr) {
-                        this.handleDailyDataInitialization();
-                        this.loadProgress();
+                        this.handleDailyDataInitialization(); this.loadProgress();
                     }
-
                     if (isUserAction) { 
                         let totalCount = (wx.getStorageSync('swipeCount') || 0) + 1;
                         wx.setStorageSync('swipeCount', totalCount);
                         this.data.swipeCount = totalCount;
                         this.elements.swipeCount.textContent = totalCount;
-
                         const today = new Date().toLocaleDateString();
                         let todayData = wx.getStorageSync('todaySwipeData') || {};
-                        if (todayData.date === today) {
-                            todayData.count += 1;
-                        } else {
-                            todayData = { date: today, count: 1 };
-                        }
+                        if (todayData.date === today) todayData.count += 1; else todayData = { date: today, count: 1 };
                         wx.setStorageSync('todaySwipeData', todayData);
                         this.data.todaySwipeCount = todayData.count;
                         this.elements.todaySwipeCount.textContent = todayData.count;
                     }
                     
-                    let currentCardsPool = []; 
-                    let selectedCard = null;
-                    let selectedCardIndexInPool = -1; 
-
+                    let currentCardsPool = []; let selectedCard = null; let selectedCardIndexInPool = -1; 
                     if (this.data.currentMode === 'A') {
                         currentCardsPool = [...this.data.allword]; 
-                        if (currentCardsPool.length > 0) {
-                            selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length);
-                            selectedCard = currentCardsPool[selectedCardIndexInPool];
-                        }
+                        if (currentCardsPool.length > 0) { selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length); selectedCard = currentCardsPool[selectedCardIndexInPool]; }
                     } else if (this.data.currentMode === '0') {
                         if (this.data.allword1.length === 0) {
                             this.data.allword1 = [...this.data.allword];
-                            if (this.data.allword1.length === 0) {
-                                this._handleEmptyPool(isUserAction);
-                                return;
-                            }
-                            this.data.j = this.data.allword.length; 
-                            this.data.i = 0; 
-                            this.data.k++; 
+                            if (this.data.allword1.length === 0) { this._handleEmptyPool(isUserAction); return; }
+                            this.data.j = this.data.allword.length; this.data.i = 0; this.data.k++; 
                         }
-                        currentCardsPool = this.data.allword1;
-                        selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length);
-                        selectedCard = currentCardsPool[selectedCardIndexInPool];
-                        if (isUserAction && selectedCard) { 
-                            this.data.allword1.splice(selectedCardIndexInPool, 1);
-                            this.data.i = this.data.j - this.data.allword1.length; 
-                        }
+                        currentCardsPool = this.data.allword1; selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length); selectedCard = currentCardsPool[selectedCardIndexInPool];
+                        if (isUserAction && selectedCard) { this.data.allword1.splice(selectedCardIndexInPool, 1); this.data.i = this.data.j - this.data.allword1.length; }
                     } else if (this.data.currentMode === '1') {
                         if (this.data.todayword1.length === 0) {
                             this.data.todayword1 = [...this.data.todayword];
-                            if (this.data.todayword1.length === 0) {
-                                this._handleEmptyPool(isUserAction);
-                                return;
-                            }
-                            this.data.n = this.data.todayword.length; 
-                            this.data.x = 0; 
-                            this.data.m++; 
+                            if (this.data.todayword1.length === 0) { this._handleEmptyPool(isUserAction); return; }
+                            this.data.n = this.data.todayword.length; this.data.x = 0; this.data.m++; 
                         }
-                        currentCardsPool = this.data.todayword1;
-                        selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length);
-                        selectedCard = currentCardsPool[selectedCardIndexInPool];
-                        if (isUserAction && selectedCard) { 
-                            this.data.todayword1.splice(selectedCardIndexInPool, 1);
-                            this.data.x = this.data.n - this.data.todayword1.length; 
-                        }
+                        currentCardsPool = this.data.todayword1; selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length); selectedCard = currentCardsPool[selectedCardIndexInPool];
+                        if (isUserAction && selectedCard) { this.data.todayword1.splice(selectedCardIndexInPool, 1); this.data.x = this.data.n - this.data.todayword1.length; }
                     } else if (this.data.currentMode === '-1') { 
                         if (this.data.todayNewWord1.length === 0) {
                             this.data.todayNewWord1 = [...this.data.todayNewWord];
-                            if (this.data.todayNewWord1.length === 0) {
-                                this._handleEmptyPool(isUserAction);
-                                return;
-                            }
-                            this.data.z = this.data.todayNewWord.length;
-                            this.data.y = 0;
-                            this.data.p++;
+                            if (this.data.todayNewWord1.length === 0) { this._handleEmptyPool(isUserAction); return; }
+                            this.data.z = this.data.todayNewWord.length; this.data.y = 0; this.data.p++;
                         }
-                        currentCardsPool = this.data.todayNewWord1;
-                        selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length);
-                        selectedCard = currentCardsPool[selectedCardIndexInPool];
-                        if (isUserAction && selectedCard) {
-                            this.data.todayNewWord1.splice(selectedCardIndexInPool, 1);
-                            this.data.y = this.data.z - this.data.todayNewWord1.length; 
-                        }
+                        currentCardsPool = this.data.todayNewWord1; selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length); selectedCard = currentCardsPool[selectedCardIndexInPool];
+                        if (isUserAction && selectedCard) { this.data.todayNewWord1.splice(selectedCardIndexInPool, 1); this.data.y = this.data.z - this.data.todayNewWord1.length; }
                     }
 
-                    if (!selectedCard) { 
-                        this._handleEmptyPool(isUserAction);
-                        return; 
-                    }
+                    if (!selectedCard) { this._handleEmptyPool(isUserAction); return; }
                     
                     let displayWord = selectedCard.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n');
-
                     this.data.displayContent = displayWord; 
-                    this.data.currentIndex = (wx.getStorageSync('myCards') || []).findIndex(card => 
-                        card.word === selectedCard.word && card.pastday === selectedCard.pastday && card.createDate === selectedCard.createDate
-                    );
+                    this.data.currentIndex = (wx.getStorageSync('myCards') || []).findIndex(card => card.word === selectedCard.word && card.pastday === selectedCard.pastday && card.createDate === selectedCard.createDate);
                     
                     const wordCounts = wx.getStorageSync('wordCounts') || {};
-                    const currentWordText = selectedCard.word; 
+                    let count = wordCounts[selectedCard.word] || 0; 
+                    if (isUserAction) { count = (wordCounts[selectedCard.word] || 0) + 1; wordCounts[selectedCard.word] = count; wx.setStorageSync('wordCounts', wordCounts); }
                     
-                    let count = wordCounts[currentWordText] || 0; 
-                    if (isUserAction) {
-                        count = (wordCounts[currentWordText] || 0) + 1;
-                        wordCounts[currentWordText] = count;
-                        wx.setStorageSync('wordCounts', wordCounts);
-                    }
-                    
-                    let displayHtml = `<div class="card-content-container">`;
-                    displayHtml += `<span class="card-text" style="font-weight: bold;">${displayWord.replace(/\n/g, '<br>')}</span>`; 
-                    
-                    // 第一页不再显示释义
-
-                    if (count > 0) { 
-                        displayHtml += `<div class="word-count">${count}</div>`; 
-                    }
+                    let displayHtml = `<div class="card-content-container"><span class="card-text" style="font-weight: bold;">${displayWord.replace(/\n/g, '<br>')}</span>`; 
+                    if (count > 0) displayHtml += `<div class="word-count">${count}</div>`; 
                     displayHtml += `</div>`;
                     this.elements.displayContent.innerHTML = displayHtml;
 
-                    this.updateStatistics();
-                    this.updateProgressDisplay();
-                    this.saveProgress(); 
+                    this.updateStatistics(); this.updateProgressDisplay(); this.saveProgress(); 
                 },
                 _handleEmptyPool(isUserAction) {
-                    this.elements.displayContent.textContent = '暂无内容，请添加';
-                    this.data.currentIndex = -1;
+                    this.elements.displayContent.textContent = '暂无内容，请添加'; this.data.currentIndex = -1;
                     if (isUserAction) wx.showToast({ title: '当前筛选无卡片', icon: 'info', duration: 1500 });
-                    this.updateStatistics();
-                    this.updateProgressDisplay();
-                    this.saveProgress();
+                    this.updateStatistics(); this.updateProgressDisplay(); this.saveProgress();
                 },
                 drawOne() { this.getRandomContent(true); },
                 deleteContent() {
@@ -958,63 +574,27 @@
                 },
                 confirmDelete() {
                     let myCards = wx.getStorageSync('myCards') || []; 
-                    const indexToDelete = this.data.currentIndex; 
-                    
-                    if (indexToDelete >= 0 && indexToDelete < myCards.length) { 
-                        const deletedCard = myCards[indexToDelete]; 
-                        const deletedWord = deletedCard.word; 
-
-                        // 1. 从 myCards 中删除
-                        myCards.splice(indexToDelete, 1); 
+                    if (this.data.currentIndex >= 0 && this.data.currentIndex < myCards.length) { 
+                        const deletedWord = myCards[this.data.currentIndex].word; 
+                        myCards.splice(this.data.currentIndex, 1); 
                         wx.setStorageSync('myCards', myCards); 
                         
-                        // 2. 重新构建 allword, todayword, todayNewWord
-                        this.data.allword = [...myCards];
-                        this.data.todayword = myCards.filter(card => this.TODAY_PASTDAYS_FILTER.includes(card.pastday));
-                        this.data.todayNewWord = myCards.filter(card => card.pastday === 0); 
+                        this.data.allword = [...myCards]; this.data.todayword = myCards.filter(card => this.TODAY_PASTDAYS_FILTER.includes(card.pastday)); this.data.todayNewWord = myCards.filter(card => card.pastday === 0); 
+                        wx.setStorageSync('allword', this.data.allword); wx.setStorageSync('todayword', this.data.todayword); wx.setStorageSync('todayNewWord', this.data.todayNewWord); 
 
-                        wx.setStorageSync('allword', this.data.allword);
-                        wx.setStorageSync('todayword', this.data.todayword);
-                        wx.setStorageSync('todayNewWord', this.data.todayNewWord); 
-
-                        // 3. 更新副本
-                        this.data.allword1 = this.data.allword1.filter(card => !(card.word === deletedCard.word && card.pastday === deletedCard.pastday && card.createDate === deletedCard.createDate));
-                        this.data.todayword1 = this.data.todayword1.filter(card => !(card.word === deletedCard.word && card.pastday === deletedCard.pastday && card.createDate === deletedCard.createDate));
-                        this.data.todayNewWord1 = this.data.todayNewWord1.filter(card => !(card.word === deletedCard.word && card.pastday === deletedCard.pastday && card.createDate === deletedCard.createDate));
+                        this.data.allword1 = this.data.allword1.filter(card => card.word !== deletedWord);
+                        this.data.todayword1 = this.data.todayword1.filter(card => card.word !== deletedWord);
+                        this.data.todayNewWord1 = this.data.todayNewWord1.filter(card => card.word !== deletedWord);
                         
-                        // 更新 J, N, Z
-                        this.data.j = this.data.allword.length; 
-                        this.data.n = this.data.todayword.length; 
-                        this.data.z = this.data.todayNewWord.length; 
+                        this.data.j = this.data.allword.length; this.data.n = this.data.todayword.length; this.data.z = this.data.todayNewWord.length; 
 
-                        if (this.data.currentMode === '0') {
-                            this.data.i = this.data.j - this.data.allword1.length;
-                            if (this.data.allword1.length === 0 && this.data.j > 0) {
-                                this.data.k++; this.data.allword1 = [...this.data.allword]; this.data.i = 0; 
-                            } else if (this.data.allword1.length === 0 && this.data.j === 0) { this.data.i = 0; }
-                        }
-                        if (this.data.currentMode === '1') {
-                            this.data.x = this.data.n - this.data.todayword1.length;
-                            if (this.data.todayword1.length === 0 && this.data.n > 0) {
-                                this.data.m++; this.data.todayword1 = [...this.data.todayword]; this.data.x = 0;
-                            } else if (this.data.todayword1.length === 0 && this.data.n === 0) { this.data.x = 0; }
-                        }
-                        if (this.data.currentMode === '-1') { 
-                            this.data.y = this.data.z - this.data.todayNewWord1.length;
-                            if (this.data.todayNewWord1.length === 0 && this.data.z > 0) {
-                                this.data.p++; this.data.todayNewWord1 = [...this.data.todayNewWord]; this.data.y = 0;
-                            } else if (this.data.todayNewWord1.length === 0 && this.data.z === 0) { this.data.y = 0; }
-                        }
+                        if (this.data.currentMode === '0') { this.data.i = this.data.j - this.data.allword1.length; if (this.data.allword1.length === 0 && this.data.j > 0) { this.data.k++; this.data.allword1 = [...this.data.allword]; this.data.i = 0; } else if (this.data.allword1.length === 0 && this.data.j === 0) { this.data.i = 0; } }
+                        if (this.data.currentMode === '1') { this.data.x = this.data.n - this.data.todayword1.length; if (this.data.todayword1.length === 0 && this.data.n > 0) { this.data.m++; this.data.todayword1 = [...this.data.todayword]; this.data.x = 0; } else if (this.data.todayword1.length === 0 && this.data.n === 0) { this.data.x = 0; } }
+                        if (this.data.currentMode === '-1') { this.data.y = this.data.z - this.data.todayNewWord1.length; if (this.data.todayNewWord1.length === 0 && this.data.z > 0) { this.data.p++; this.data.todayNewWord1 = [...this.data.todayNewWord]; this.data.y = 0; } else if (this.data.todayNewWord1.length === 0 && this.data.z === 0) { this.data.y = 0; } }
 
                         this.saveProgress(); 
-
-                        // 4. 清除单词计数
                         let wordCounts = wx.getStorageSync('wordCounts') || {};
-                        if (wordCounts[deletedWord]) {
-                            delete wordCounts[deletedWord];
-                            wx.setStorageSync('wordCounts', wordCounts);
-                        }
-                        
+                        if (wordCounts[deletedWord]) { delete wordCounts[deletedWord]; wx.setStorageSync('wordCounts', wordCounts); }
                         wx.showToast({ title: '删除成功', icon: 'success' }); 
                         this.getRandomContent(false); 
                     }
@@ -1032,80 +612,31 @@
                 travelToEudic() {
                     const word = this.data.displayContent;
                     if (!word || word === '暂无内容，请添加') { wx.showToast({ title: '没有内容可穿越', icon: 'error' }); return; }
-                    wx.setClipboardData({ data: word }); const encodedWord = encodeURIComponent(word.trim()); const url = `eudic://dict/${encodedWord}`; window.location.href = url;
-                },
-                openSpellCheck() {
-                    if (!this.data.displayContent || this.data.displayContent === '暂无内容，请添加') {
-                        wx.showToast({ title: '没有内容可拼写', icon: 'error' }); return;
-                    }
-                    this.elements.spellInput.value = '';
-                    this.elements.spellMessageContainer.innerHTML = '';
-                    this.elements.spellInput.classList.remove('error');
-                    this.elements.spellCheckDialog.style.display = 'flex';
-                    this.elements.spellInput.focus();
-                    setTimeout(() => { this.elements.spellInput.focus(); }, 150);
-                },
-                closeSpellCheck() { this.elements.spellCheckDialog.style.display = 'none'; this.data.isChecking = false; },
-                checkSpelling() {
-                    if (this.data.isChecking) return; this.data.isChecking = true; const input = this.elements.spellInput.value.trim().toLowerCase(); 
-                    const correct = (this.data.displayContent || '').trim().toLowerCase(); 
-
-                    const msgContainer = this.elements.spellMessageContainer;
-                    if (!input) { msgContainer.innerHTML = `<div class="spell-error-msg">请输入单词</div>`; this.elements.spellInput.classList.add('error'); this.data.isChecking = false; return; }
-                    if (input === correct) {
-                        msgContainer.innerHTML = `<div class="spell-correct-msg">✓ 拼写正确！</div>`; this.elements.spellInput.classList.remove('error');
-                        setTimeout(() => { this.closeSpellCheck(); }, 1000);
-                    } else {
-                        msgContainer.innerHTML = `<div class="spell-error-msg">拼写错误，请重试</div>`;
-                        this.elements.spellInput.classList.add('error'); this.elements.spellInput.value = ''; this.elements.spellInput.focus();
-                        this.data.isChecking = false;
-                    }
+                    wx.setClipboardData({ data: word }); window.location.href = `eudic://dict/${encodeURIComponent(word.trim())}`;
                 }
             },
+
             // =================================== PAGE 2: 管理 ===================================
             page2: {
-                elements: { 
-                    inputContent: document.getElementById('inputContent'), 
-                    saveStatus: document.getElementById('saveStatus'),
-                    versionInfo: document.getElementById('versionInfo') 
-                },
-                onLoad() { 
-                    this.addEventListeners(); 
-                    this.elements.versionInfo.textContent = 'Version ' + APP_VERSION;
-                },
-                onShow() { 
-                    this.elements.inputContent.value = ''; 
-                    this.elements.saveStatus.textContent = ''; 
-                    app.page1.updateStatistics();
-                    app.page1.syncTodaySwipeCount();
-                },
+                elements: { inputContent: document.getElementById('inputContent'), saveStatus: document.getElementById('saveStatus'), versionInfo: document.getElementById('versionInfo') },
+                onLoad() { this.addEventListeners(); this.elements.versionInfo.textContent = 'Version ' + APP_VERSION; },
+                onShow() { this.elements.inputContent.value = ''; this.elements.saveStatus.textContent = ''; app.page1.updateStatistics(); app.page1.syncTodaySwipeCount(); },
                 addEventListeners() {
                     document.getElementById('saveCardBtn').addEventListener('click', () => this.saveCard());
                     document.getElementById('copyAllBtn').addEventListener('click', () => this.copyAllContents());
                     document.getElementById('exportBtn').addEventListener('click', () => this.exportData());
                     document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importInput').click());
                     document.getElementById('importInput').addEventListener('change', (e) => this.importData(e));
-                    
-                    document.getElementById('searchInput').addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            this.searchWord();
-                        }
-                    });
+                    document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.searchWord(); });
                 },
-                
                 searchWord() {
                     const inputEl = document.getElementById('searchInput');
                     const resultEl = document.getElementById('searchResult');
                     const keyword = inputEl.value.trim();
-
-                    if (!keyword) {
-                        resultEl.style.display = 'none';
-                        return;
-                    }
+                    if (!keyword) { resultEl.style.display = 'none'; return; }
 
                     const searchVal = keyword.replace(/\n/g, NEWLINE_REPLACEMENT);
                     let myCards = wx.getStorageSync('myCards') || [];
-
                     const foundIndex = myCards.findIndex(c => c.word === searchVal || c.word.toLowerCase() === searchVal.toLowerCase());
 
                     if (foundIndex === -1) {
@@ -1113,38 +644,45 @@
                         resultEl.style.display = 'block';
                     } else {
                         const card = myCards[foundIndex];
-                        const joinDateStr = card.createDate.replace(/-/g, ''); // 将 2026-03-22 转换为 20260322
-                        const pastday = card.pastday;
+                        const joinDateStr = card.createDate.replace(/-/g, '');
                         const meaningHtml = card.meaning ? `<div class="search-result-info" style="color:#666; font-size: 13px;">释义：${card.meaning}</div>` : '';
 
-                        // 生成记忆曲线的 HTML
-                        const curveDays = [1, 2, 4, 7, 15, 30, 60, 90, 120];
+                        // 原卡片记忆曲线
                         let curveHtml = '';
-                        curveDays.forEach(day => {
-                            if (pastday >= day) {
-                                curveHtml += `<span class="done">${day}</span>`;
-                            } else {
-                                curveHtml += `<span class="pending">${day}</span>`;
-                            }
+                        [1, 2, 4, 7, 15, 30, 60, 90, 120].forEach(day => {
+                            if (card.pastday >= day) curveHtml += `<span class="done">${day}</span>`; else curveHtml += `<span class="pending">${day}</span>`;
                         });
+
+                        // 拼写历史和拼写计划
+                        let spellingStats = wx.getStorageSync('spellingStats') || {};
+                        let stats = spellingStats[card.word] || { correct: 0, wrong: 0 };
+                        let spellHistoryHtml = `<div class="search-result-info">拼写历史：<span style="color:#4caf50;">✓${stats.correct}</span> <span style="color:#f44336;">✗${stats.wrong}</span></div>`;
+                        
+                        let errorBook = wx.getStorageSync('errorBook') || [];
+                        let errorItem = errorBook.find(e => e.word === card.word);
+                        let spellPlanHtml = '';
+                        if (errorItem) {
+                            let planCurve = '';
+                            ERROR_SCHEDULE.forEach((day, idx) => {
+                                if (idx < errorItem.reviewLevel) planCurve += `<span class="done">${day}</span>`;
+                                else planCurve += `<span class="pending">${day}</span>`;
+                            });
+                            spellPlanHtml = `<div class="search-result-info review-curve">拼写计划：${planCurve}</div>`;
+                        }
 
                         resultEl.innerHTML = `
                             <div class="search-result-word">${card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n')}</div>
                             ${meaningHtml}
                             <div class="search-result-info">加入时间：${joinDateStr}</div>
                             <div class="search-result-info review-curve">复习计划：${curveHtml}</div>
+                            ${spellHistoryHtml}
+                            ${spellPlanHtml}
                             <button class="search-delete-btn" id="deleteSearchBtn">删除</button>
                         `;
                         resultEl.style.display = 'block';
-
-                        document.getElementById('deleteSearchBtn').addEventListener('click', () => {
-                            this.deleteSpecificCard(card.word);
-                            inputEl.value = '';
-                            resultEl.style.display = 'none';
-                        });
+                        document.getElementById('deleteSearchBtn').addEventListener('click', () => { this.deleteSpecificCard(card.word); inputEl.value = ''; resultEl.style.display = 'none'; });
                     }
                 },
-                
                 deleteSpecificCard(wordToDelete) {
                     let myCards = wx.getStorageSync('myCards') || [];
                     const initialLen = myCards.length;
@@ -1152,161 +690,86 @@
 
                     if (myCards.length < initialLen) {
                         wx.setStorageSync('myCards', myCards);
-
-                        // 更新 page1 中的所有全局池数据
                         app.page1.data.allword = [...myCards];
                         app.page1.data.todayword = myCards.filter(card => app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday));
                         app.page1.data.todayNewWord = myCards.filter(card => card.pastday === 0);
+                        wx.setStorageSync('allword', app.page1.data.allword); wx.setStorageSync('todayword', app.page1.data.todayword); wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
 
-                        wx.setStorageSync('allword', app.page1.data.allword);
-                        wx.setStorageSync('todayword', app.page1.data.todayword);
-                        wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
-
-                        // 清理副本中的该卡片
                         app.page1.data.allword1 = app.page1.data.allword1.filter(c => c.word !== wordToDelete);
                         app.page1.data.todayword1 = app.page1.data.todayword1.filter(c => c.word !== wordToDelete);
                         app.page1.data.todayNewWord1 = app.page1.data.todayNewWord1.filter(c => c.word !== wordToDelete);
 
-                        // 更新总量及当前指标
-                        app.page1.data.j = app.page1.data.allword.length;
-                        app.page1.data.n = app.page1.data.todayword.length;
-                        app.page1.data.z = app.page1.data.todayNewWord.length;
+                        app.page1.data.j = app.page1.data.allword.length; app.page1.data.n = app.page1.data.todayword.length; app.page1.data.z = app.page1.data.todayNewWord.length;
 
-                        if(app.page1.data.currentMode === '0') {
-                             app.page1.data.i = app.page1.data.j - app.page1.data.allword1.length;
-                        } else if(app.page1.data.currentMode === '1') {
-                             app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
-                        } else if(app.page1.data.currentMode === '-1') {
-                             app.page1.data.y = app.page1.data.z - app.page1.data.todayNewWord1.length;
-                        }
+                        if(app.page1.data.currentMode === '0') app.page1.data.i = app.page1.data.j - app.page1.data.allword1.length;
+                        else if(app.page1.data.currentMode === '1') app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
+                        else if(app.page1.data.currentMode === '-1') app.page1.data.y = app.page1.data.z - app.page1.data.todayNewWord1.length;
 
                         app.page1.saveProgress();
 
                         let wordCounts = wx.getStorageSync('wordCounts') || {};
-                        if (wordCounts[wordToDelete]) {
-                            delete wordCounts[wordToDelete];
-                            wx.setStorageSync('wordCounts', wordCounts);
-                        }
+                        if (wordCounts[wordToDelete]) { delete wordCounts[wordToDelete]; wx.setStorageSync('wordCounts', wordCounts); }
+                        
+                        // 从错题本同步删除
+                        let errorBook = wx.getStorageSync('errorBook') || [];
+                        errorBook = errorBook.filter(e => e.word !== wordToDelete);
+                        wx.setStorageSync('errorBook', errorBook);
 
-                        wx.showToast({ title: '删除成功', icon: 'success' });
-                        app.page1.updateStatistics();
-
-                        // 如果删除的刚好是第一页当前正在展示的卡片，刷新它
-                        if (app.page1.data.displayContent === wordToDelete.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n')) {
-                            app.page1.getRandomContent(false);
-                        }
+                        wx.showToast({ title: '删除成功', icon: 'success' }); app.page1.updateStatistics();
+                        if (app.page1.data.displayContent === wordToDelete.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n')) app.page1.getRandomContent(false);
                     }
                 },
-
                 saveCard() {
                     let content = this.elements.inputContent.value;
-                    // 将多个换行符替换为单个换行符，并去掉首尾空格
                     content = content.replace(/\n\s*\n/g, '\n').trim();
+                    const rawLines = content.split('\n').map(s => s.trim()).filter(s => s !== '');
+                    if (rawLines.length === 0) { wx.showToast({ title: '内容不能为空', icon: 'none' }); this.elements.inputContent.value = ''; return; }
 
-                    // 以换行符分割，每一行为一个单词项
-                    const rawLines = content.split('\n')
-                        .map(s => s.trim())
-                        .filter(s => s !== '');
-
-                    if (rawLines.length === 0) {
-                        wx.showToast({ title: '内容不能为空', icon: 'none' });
-                        this.elements.inputContent.value = '';
-                        return;
-                    }
-
-                    const todayObj = new Date();
-                    todayObj.setHours(0, 0, 0, 0); 
                     const todayStr = new Date().toLocaleDateString('en-CA'); 
-
                     let existingCards = wx.getStorageSync('myCards') || [];
                     const existingWordSet = new Set(existingCards.map(card => card.word));
                     
-                    let uniqueNewCards = [];
-                    let forceUpdatedWordsList = []; 
-                    let meaningUpdatedWordsList = []; // 记录由于释义补充被更新的单词
-                    let duplicateCount = 0;
-                    let updateCount = 0; 
-                    
-                    // 单次批量录入查重 Map（单词一样就视为重复）
+                    let uniqueNewCards = []; let forceUpdatedWordsList = []; let meaningUpdatedWordsList = []; 
+                    let duplicateCount = 0; let updateCount = 0; 
                     let batchInputMap = new Map();
 
                     rawLines.forEach(line => {
-                        let wordPart = line;
-                        let meaningPart = "";
-                        
-                        // 寻找冒号(半角或全角)作为分隔符
+                        let wordPart = line; let meaningPart = "";
                         const colonIndex = line.search(/[:：]/);
-                        if (colonIndex !== -1) {
-                            wordPart = line.substring(0, colonIndex).trim();
-                            meaningPart = line.substring(colonIndex + 1).trim();
-                        }
+                        if (colonIndex !== -1) { wordPart = line.substring(0, colonIndex).trim(); meaningPart = line.substring(colonIndex + 1).trim(); }
 
-                        let forceUpdate = false;
-                        let pastday = 0;
-                        let createDate = todayStr;
-
-                        // 检测是否带有触发删除重添计划的感叹号 "！"或"!"
-                        if (wordPart.endsWith('！') || wordPart.endsWith('!')) {
-                            forceUpdate = true;
-                            wordPart = wordPart.slice(0, -1).trim();
-                        }
-
+                        let forceUpdate = false; let pastday = 0; let createDate = todayStr;
+                        if (wordPart.endsWith('！') || wordPart.endsWith('!')) { forceUpdate = true; wordPart = wordPart.slice(0, -1).trim(); }
                         let wordToSave = wordPart.replace(/\n/g, NEWLINE_REPLACEMENT);
 
-                        // 批量内部查重检测（单次输入中重复的，只保留第一次）
-                        if (batchInputMap.has(wordToSave)) {
-                            duplicateCount++;
-                            return; // 跳过后续重复项
-                        }
+                        if (batchInputMap.has(wordToSave)) { duplicateCount++; return; }
                         batchInputMap.set(wordToSave, true);
 
                         if (forceUpdate) {
-                            // 强制删除之前池子里存在的同名卡片
                             const initLen = existingCards.length;
                             existingCards = existingCards.filter(card => card.word !== wordToSave);
-                            if (existingCards.length < initLen) {
-                                updateCount++; 
-                                forceUpdatedWordsList.push(wordToSave);
-                            }
+                            if (existingCards.length < initLen) { updateCount++; forceUpdatedWordsList.push(wordToSave); }
                             uniqueNewCards.push({ word: wordToSave, meaning: meaningPart, pastday: pastday, createDate: createDate });
                         } else {
-                            // 全局查重与补充释义检测
                             let existingCard = existingCards.find(c => c.word === wordToSave);
-                            
                             if (existingCard) {
-                                // 如果库中该单词释义为空，且本次输入释义不为空，则补充释义
                                 if ((!existingCard.meaning || existingCard.meaning.trim() === '') && meaningPart.trim() !== '') {
-                                    existingCard.meaning = meaningPart;
-                                    updateCount++;
-                                    meaningUpdatedWordsList.push({ word: wordToSave, meaning: meaningPart });
-                                } else {
-                                    // 已存在且无需补充释义，视为完全重复
-                                    duplicateCount++;
-                                }
+                                    existingCard.meaning = meaningPart; updateCount++; meaningUpdatedWordsList.push({ word: wordToSave, meaning: meaningPart });
+                                } else { duplicateCount++; }
                             } else {
-                                // 库中不存在，作为新卡片加入
                                 uniqueNewCards.push({ word: wordToSave, meaning: meaningPart, pastday: pastday, createDate: createDate });
+                                existingWordSet.add(wordToSave); 
                             }
                         }
                     });
 
                     if (uniqueNewCards.length > 0 || updateCount > 0) {
-                        // 合并过滤/修改后的老卡片和全新的卡片
-                        let updatedCards = existingCards.concat(uniqueNewCards);
-                        wx.setStorageSync('myCards', updatedCards);
-
-                        // 更新全局卡片数据
+                        let updatedCards = existingCards.concat(uniqueNewCards); wx.setStorageSync('myCards', updatedCards);
                         app.page1.data.allword = [...updatedCards];
-                        app.page1.data.todayword = updatedCards.filter(card => 
-                            app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday)
-                        );
+                        app.page1.data.todayword = updatedCards.filter(card => app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday));
                         app.page1.data.todayNewWord = updatedCards.filter(card => card.pastday === 0);
+                        wx.setStorageSync('allword', app.page1.data.allword); wx.setStorageSync('todayword', app.page1.data.todayword); wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
 
-                        wx.setStorageSync('allword', app.page1.data.allword);
-                        wx.setStorageSync('todayword', app.page1.data.todayword);
-                        wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
-
-                        // 强力清理旧副本的数据 (应对被 forceUpdate 完全重置的卡片)
                         if (forceUpdatedWordsList.length > 0) {
                             forceUpdatedWordsList.forEach(word => {
                                 app.page1.data.allword1 = app.page1.data.allword1.filter(c => c.word !== word);
@@ -1314,170 +777,356 @@
                                 app.page1.data.todayNewWord1 = app.page1.data.todayNewWord1.filter(c => c.word !== word);
                             });
                         }
-                        
-                        // 将新增的释义同步到当轮的复习副本中，避免用户切过去抽卡时还是旧的空状态
                         if (meaningUpdatedWordsList.length > 0) {
                             meaningUpdatedWordsList.forEach(updateItem => {
-                                let aw1 = app.page1.data.allword1.find(c => c.word === updateItem.word);
-                                if (aw1) aw1.meaning = updateItem.meaning;
-                                let tw1 = app.page1.data.todayword1.find(c => c.word === updateItem.word);
-                                if (tw1) tw1.meaning = updateItem.meaning;
-                                let tnw1 = app.page1.data.todayNewWord1.find(c => c.word === updateItem.word);
-                                if (tnw1) tnw1.meaning = updateItem.meaning;
+                                let aw1 = app.page1.data.allword1.find(c => c.word === updateItem.word); if (aw1) aw1.meaning = updateItem.meaning;
+                                let tw1 = app.page1.data.todayword1.find(c => c.word === updateItem.word); if (tw1) tw1.meaning = updateItem.meaning;
+                                let tnw1 = app.page1.data.todayNewWord1.find(c => c.word === updateItem.word); if (tnw1) tnw1.meaning = updateItem.meaning;
                             });
                         }
-
-                        // 将新卡片注射到当轮副本
                         uniqueNewCards.forEach(card => {
-                            if (!app.page1.data.allword1.some(c => c.word === card.word)) {
-                                app.page1.data.allword1.push(card);
-                            }
-                            if (app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday) && 
-                                !app.page1.data.todayword1.some(c => c.word === card.word)) {
-                                app.page1.data.todayword1.push(card);
-                            }
-                            if (card.pastday === 0 && !app.page1.data.todayNewWord1.some(c => c.word === card.word)) {
-                                app.page1.data.todayNewWord1.push(card);
-                            }
+                            if (!app.page1.data.allword1.some(c => c.word === card.word)) app.page1.data.allword1.push(card);
+                            if (app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday) && !app.page1.data.todayword1.some(c => c.word === card.word)) app.page1.data.todayword1.push(card);
+                            if (card.pastday === 0 && !app.page1.data.todayNewWord1.some(c => c.word === card.word)) app.page1.data.todayNewWord1.push(card);
                         });
 
-                        // 更新所有当前总数统计
-                        app.page1.data.j = app.page1.data.allword.length;
-                        app.page1.data.n = app.page1.data.todayword.length;
-                        app.page1.data.z = app.page1.data.todayNewWord.length;
-
-                        // 修复第0轮的显示bug（新增卡片后如果是在某模式池内首次填入，应将轮次重置为1）
+                        app.page1.data.j = app.page1.data.allword.length; app.page1.data.n = app.page1.data.todayword.length; app.page1.data.z = app.page1.data.todayNewWord.length;
                         if (app.page1.data.k === 0 && app.page1.data.allword1.length > 0) app.page1.data.k = 1;
                         if (app.page1.data.m === 0 && app.page1.data.todayword1.length > 0) app.page1.data.m = 1;
                         if (app.page1.data.p === 0 && app.page1.data.todayNewWord1.length > 0) app.page1.data.p = 1;
-
                         if (app.page1.data.currentMode === '0') app.page1.data.i = app.page1.data.j - app.page1.data.allword1.length;
                         else if (app.page1.data.currentMode === '1') app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
                         else if (app.page1.data.currentMode === '-1') app.page1.data.y = app.page1.data.z - app.page1.data.todayNewWord1.length;
                         
                         app.page1.saveProgress(); 
-
                         let statusText = [];
                         if (uniqueNewCards.length > 0) statusText.push(`新增 ${uniqueNewCards.length} 条`);
                         if (updateCount > 0) statusText.push(`更新 ${updateCount} 条`);
-
                         this.elements.saveStatus.textContent = statusText.join('，') + '!';
                         
-                        if (duplicateCount > 0) {
-                            wx.showToast({ title: statusText.join('，') + `，跳过 ${duplicateCount} 条重复`, icon: 'info', duration: 3000 });
-                        } else {
-                            wx.showToast({ title: '保存成功', icon: 'success' });
-                        }
+                        if (duplicateCount > 0) wx.showToast({ title: statusText.join('，') + `，跳过 ${duplicateCount} 条重复`, icon: 'info', duration: 3000 });
+                        else wx.showToast({ title: '保存成功', icon: 'success' });
                         app.page1.updateStatistics(); 
-                    } else if (duplicateCount > 0) {
-                        wx.showToast({ title: `全部内容重复，未保存`, icon: 'error', duration: 2500 });
-                    } else {
-                        wx.showToast({ title: '没有内容可保存', icon: 'none' });
-                    }
+                    } else if (duplicateCount > 0) { wx.showToast({ title: `全部内容重复，未保存`, icon: 'error', duration: 2500 });
+                    } else { wx.showToast({ title: '没有内容可保存', icon: 'none' }); }
 
-                    this.elements.inputContent.value = '';
-                    setTimeout(() => { this.elements.saveStatus.textContent = ''; }, 2000);
+                    this.elements.inputContent.value = ''; setTimeout(() => { this.elements.saveStatus.textContent = ''; }, 2000);
                 },
-
                 copyAllContents() {
-                    let cardsToCopy = [];
-                    const currentMode = app.page1.data.currentMode;
+                    let cardsToCopy = []; const currentMode = app.page1.data.currentMode;
+                    if (currentMode === 'A') cardsToCopy = wx.getStorageSync('myCards') || [];
+                    else if (currentMode === '0') cardsToCopy = app.page1.data.allword; 
+                    else if (currentMode === '1') cardsToCopy = app.page1.data.todayword; 
+                    else if (currentMode === '-1') cardsToCopy = app.page1.data.todayNewWord; 
 
-                    if (currentMode === 'A') {
-                        cardsToCopy = wx.getStorageSync('myCards') || [];
-                    } else if (currentMode === '0') {
-                        cardsToCopy = app.page1.data.allword; 
-                    } else if (currentMode === '1') {
-                        cardsToCopy = app.page1.data.todayword; 
-                    } else if (currentMode === '-1') {
-                        cardsToCopy = app.page1.data.todayNewWord; 
-                    }
-
-                    const cardWords = cardsToCopy.map(card => {
-                        return card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n');
-                    });
-
+                    const cardWords = cardsToCopy.map(card => card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n'));
                     if (cardWords.length === 0) { wx.showToast({ title: '没有内容可复制', icon: 'none' }); return; }
-                    const contents = cardWords.join('\n'); 
-                    wx.setClipboardData({ data: contents, success: () => wx.showToast({ title: '复制成功', icon: 'success', duration: 1000 }) });
+                    wx.setClipboardData({ data: cardWords.join('\n'), success: () => wx.showToast({ title: '复制成功', icon: 'success', duration: 1000 }) });
                 },
-
                 exportData() {
                     const myCards = wx.getStorageSync('myCards') || [];
-                    if (myCards.length === 0) {
-                        wx.showToast({ title: '没有数据可导出', icon: 'error' });
-                        return;
-                    }
-                    const dataStr = JSON.stringify(myCards, null, 2);
-                    const blob = new Blob([dataStr], { type: 'text/plain;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    const todayStr = new Date().toLocaleDateString('en-CA').replace(/-/g, '');
-                    a.download = `mycards_backup_${todayStr}.txt`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+                    if (myCards.length === 0) { wx.showToast({ title: '没有数据可导出', icon: 'error' }); return; }
+                    const blob = new Blob([JSON.stringify(myCards, null, 2)], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url;
+                    a.download = `mycards_backup_${new Date().toLocaleDateString('en-CA').replace(/-/g, '')}.txt`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
                     wx.showToast({ title: '导出成功', icon: 'success' });
                 },
-
                 importData(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
+                    const file = e.target.files[0]; if (!file) return;
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         try {
                             const importedData = JSON.parse(event.target.result);
                             if (!Array.isArray(importedData)) throw new Error('Data is not an array');
-                            
-                            // 验证格式合法性 (放宽了对 meaning 的强制要求，兼顾以前导出的老数据备份)
                             const isValid = importedData.every(item => item.hasOwnProperty('word') && item.hasOwnProperty('pastday') && item.hasOwnProperty('createDate'));
                             if (!isValid) throw new Error('Data format invalid');
 
-                            // 覆盖本地数据
                             wx.setStorageSync('myCards', importedData);
-                            
-                            // 强制同步到 page1 的所有全局卡池中
                             app.page1.data.allword = [...importedData];
                             app.page1.data.todayword = importedData.filter(card => app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday));
                             app.page1.data.todayNewWord = importedData.filter(card => card.pastday === 0);
+                            wx.setStorageSync('allword', app.page1.data.allword); wx.setStorageSync('todayword', app.page1.data.todayword); wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
                             
-                            wx.setStorageSync('allword', app.page1.data.allword);
-                            wx.setStorageSync('todayword', app.page1.data.todayword);
-                            wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
-                            
-                            // 刷新当前轮次的复习副本和计数，保证用户切回时能立马看到最新数据
-                            app.page1.data.allword1 = [];
-                            app.page1.data.todayword1 = [];
-                            app.page1.data.todayNewWord1 = [];
-                            
+                            app.page1.data.allword1 = []; app.page1.data.todayword1 = []; app.page1.data.todayNewWord1 = [];
                             app.page1.data.i = 0; app.page1.data.j = app.page1.data.allword.length; app.page1.data.k = 0;
                             app.page1.data.x = 0; app.page1.data.n = app.page1.data.todayword.length; app.page1.data.m = 0;
                             app.page1.data.y = 0; app.page1.data.z = app.page1.data.todayNewWord.length; app.page1.data.p = 0;
                             
-                            app.page1.saveProgress();
-                            app.page1.updateStatistics();
-                            this.onShow(); // 更新 Page2 中的统计显示
-
+                            app.page1.saveProgress(); app.page1.updateStatistics(); this.onShow();
                             wx.showToast({ title: '导入成功', icon: 'success' });
-                        } catch (err) {
-                            console.error('Import Error:', err);
-                            wx.showToast({ title: '文件格式错误或损坏', icon: 'error' });
-                        } finally {
-                            e.target.value = ''; // 重置 file input，确保可以重复选中同一文件
-                        }
+                        } catch (err) { wx.showToast({ title: '文件格式错误或损坏', icon: 'error' }); } 
+                        finally { e.target.value = ''; }
                     };
                     reader.readAsText(file);
                 }
             },
-            // =================================== PAGE 3: 已标记 ===================================
+
+            // =================================== PAGE 3: 回顾(拼写) ===================================
             page3: {
-                data: { selectedWord: null, },
+                data: {
+                    activeMode: null,  // 当前激活的模式分类 (select, review, error)
+                    subMode: null,     // 子模式 (A, 0, 1, -1, E)
+                    state: null        // { queue, totalM, currentN, wrongJ, currentWord }
+                },
+                elements: {
+                    selectBtn: document.getElementById('spellSelectBtn'),
+                    reviewBtn: document.getElementById('spellReviewBtn'),
+                    errorBtn: document.getElementById('spellErrorBtn'),
+                    mask: document.getElementById('modeSelectMask'),
+                    meaningDisplay: document.getElementById('spellMeaningDisplay'),
+                    hintDisplay: document.getElementById('spellHintDisplay'),
+                    inputField: document.getElementById('spellInputField'),
+                    progressDisplay: document.getElementById('spellProgressDisplay'),
+                    progressNM: document.getElementById('spellProgressNM'),
+                    progressJ: document.getElementById('spellProgressJ'),
+                    restartBtn: document.getElementById('spellRestartBtn'),
+                    travelBtn: document.getElementById('spellTravelBtnPage3')
+                },
+                onLoad() {
+                    this.addEventListeners();
+                },
+                onShow() {
+                    app.globalInit(); // 刷新复习按钮数字
+                    this.loadSpellingState();
+                },
+                addEventListeners() {
+                    this.elements.selectBtn.addEventListener('click', () => { this.elements.mask.style.display = 'flex'; });
+                    this.elements.mask.querySelectorAll('button[data-mode]').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            this.elements.mask.style.display = 'none';
+                            this.switchMode('select', e.target.dataset.mode);
+                        });
+                    });
+                    this.elements.reviewBtn.addEventListener('click', () => this.switchMode('review', null));
+                    this.elements.errorBtn.addEventListener('click', () => this.switchMode('error', null));
+                    
+                    this.elements.restartBtn.addEventListener('click', () => this.restartCurrentMode());
+                    this.elements.travelBtn.addEventListener('click', () => this.travelWord());
+
+                    this.elements.inputField.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') this.checkInput();
+                    });
+                },
+                getStorageKey() {
+                    if (!this.data.activeMode) return null;
+                    return `spellState_${this.data.activeMode}_${this.data.subMode || 'default'}`;
+                },
+                saveSpellingState() {
+                    const key = this.getStorageKey();
+                    if (key && this.data.state) wx.setStorageSync(key, this.data.state);
+                    
+                    // 保存全局当前选中的模式，便于下次打开恢复
+                    wx.setStorageSync('spellLastActive', { mode: this.data.activeMode, sub: this.data.subMode });
+                },
+                loadSpellingState() {
+                    const lastActive = wx.getStorageSync('spellLastActive');
+                    if (lastActive && lastActive.mode) {
+                        this.switchMode(lastActive.mode, lastActive.sub, true);
+                    }
+                },
+                updateUINav() {
+                    [this.elements.selectBtn, this.elements.reviewBtn, this.elements.errorBtn].forEach(b => b.classList.remove('active'));
+                    if (this.data.activeMode === 'select') this.elements.selectBtn.classList.add('active');
+                    if (this.data.activeMode === 'review') this.elements.reviewBtn.classList.add('active');
+                    if (this.data.activeMode === 'error') this.elements.errorBtn.classList.add('active');
+                },
+                switchMode(mode, subMode, isResume = false) {
+                    this.data.activeMode = mode;
+                    this.data.subMode = subMode;
+                    this.updateUINav();
+                    
+                    const key = this.getStorageKey();
+                    let savedState = wx.getStorageSync(key);
+                    
+                    if (savedState && savedState.totalM > 0 && (savedState.currentWord || savedState.queue.length > 0)) {
+                        this.data.state = savedState;
+                        this.renderCurrentWord();
+                    } else if (!isResume) {
+                        this.initNewQueue();
+                    } else {
+                        this.setEmptyState('本模式暂无进度或已完成');
+                    }
+                },
+                restartCurrentMode() {
+                    if (!this.data.activeMode) {
+                        wx.showToast({title: '请先选择模式', icon:'none'}); return;
+                    }
+                    this.initNewQueue();
+                },
+                initNewQueue() {
+                    let baseList = [];
+                    const allCards = wx.getStorageSync('myCards') || [];
+                    
+                    if (this.data.activeMode === 'select') {
+                        if (this.data.subMode === 'A') baseList = [...allCards];
+                        else if (this.data.subMode === '0') baseList = wx.getStorageSync('allword') || [];
+                        else if (this.data.subMode === '1') baseList = wx.getStorageSync('todayword') || [];
+                        else if (this.data.subMode === '-1') baseList = wx.getStorageSync('todayNewWord') || [];
+                        else if (this.data.subMode === 'E') {
+                            const errorBook = wx.getStorageSync('errorBook') || [];
+                            baseList = errorBook.map(e => allCards.find(c => c.word === e.word)).filter(Boolean);
+                        }
+                    } else if (this.data.activeMode === 'review') {
+                        const reviewToday = wx.getStorageSync('reviewToday') || [];
+                        baseList = reviewToday.map(word => allCards.find(c => c.word === word)).filter(Boolean);
+                    } else if (this.data.activeMode === 'error') {
+                        const errorToday = wx.getStorageSync('errorToday') || [];
+                        baseList = errorToday.map(word => allCards.find(c => c.word === word)).filter(Boolean);
+                    }
+
+                    if (baseList.length === 0) {
+                        this.setEmptyState('当前条件下没有单词');
+                        return;
+                    }
+
+                    // 洗牌打乱队列
+                    baseList = baseList.sort(() => Math.random() - 0.5);
+
+                    this.data.state = {
+                        queue: baseList.map(c => ({ word: c.word, meaning: c.meaning, failAttempt: 0 })),
+                        totalM: baseList.length,
+                        currentN: 1,
+                        wrongJ: 0,
+                        currentWord: null
+                    };
+                    
+                    this.nextWord();
+                },
+                setEmptyState(msg) {
+                    this.data.state = null;
+                    this.elements.meaningDisplay.textContent = msg;
+                    this.elements.inputField.value = '';
+                    this.elements.inputField.disabled = true;
+                    this.elements.progressDisplay.style.display = 'none';
+                    this.saveSpellingState();
+                },
+                nextWord() {
+                    if (this.data.state.queue.length === 0) {
+                        this.setEmptyState('太棒了，本次拼写已完成！再次点击按钮可重新开始。');
+                        // 完成时若在复习模式，更新显示数量
+                        if (this.data.activeMode === 'review') app.globalInit();
+                        return;
+                    }
+                    this.data.state.currentWord = this.data.state.queue.shift();
+                    this.renderCurrentWord();
+                },
+                renderCurrentWord() {
+                    if (!this.data.state || !this.data.state.currentWord) return;
+                    
+                    this.elements.inputField.disabled = false;
+                    this.elements.inputField.value = '';
+                    this.elements.hintDisplay.style.display = 'none';
+                    
+                    const wordObj = this.data.state.currentWord;
+                    this.elements.meaningDisplay.innerHTML = wordObj.meaning ? wordObj.meaning.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '<br>') : '<span style="color:#ccc;">[无释义]</span>';
+                    
+                    this.elements.progressDisplay.style.display = 'block';
+                    this.elements.progressNM.textContent = `${this.data.state.currentN}/${this.data.state.totalM}`;
+                    this.elements.progressJ.textContent = this.data.state.wrongJ;
+                    
+                    this.saveSpellingState();
+                    
+                    // 自动聚焦
+                    setTimeout(() => { this.elements.inputField.focus(); }, 100);
+                },
+                checkInput() {
+                    if (!this.data.state || !this.data.state.currentWord) return;
+                    const inputStr = this.elements.inputField.value.trim();
+                    if (!inputStr) return;
+
+                    const correctWord = this.data.state.currentWord.word;
+                    
+                    // 判断逻辑：只提取字母和数字对比
+                    const normalize = (str) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                    const isCorrect = normalize(inputStr) === normalize(correctWord);
+
+                    if (isCorrect) {
+                        this.handleCorrectSpelling(correctWord);
+                    } else {
+                        this.handleWrongSpelling(correctWord);
+                    }
+                },
+                handleCorrectSpelling(word) {
+                    wx.showToast({title: '正确', icon: 'success', duration: 500});
+                    this.updateSpellingStats(word, true);
+
+                    if (this.data.activeMode === 'review') {
+                        let errorBook = wx.getStorageSync('errorBook') || [];
+                        let eItem = errorBook.find(e => e.word === word);
+                        if (eItem) {
+                            eItem.reviewLevel++;
+                            eItem.lastReviewDate = new Date().toLocaleDateString('en-CA');
+                            eItem.correctCount = (eItem.correctCount || 0) + 1;
+                            wx.setStorageSync('errorBook', errorBook);
+                        }
+                    }
+
+                    this.data.state.currentN++;
+                    this.nextWord();
+                },
+                handleWrongSpelling(word) {
+                    const activeWord = this.data.state.currentWord;
+                    activeWord.failAttempt++;
+                    this.data.state.wrongJ++;
+                    this.updateSpellingStats(word, false);
+
+                    // 错误处理逻辑：加入/重置 errorBook
+                    const todayStr = new Date().toLocaleDateString('en-CA');
+                    let errorBook = wx.getStorageSync('errorBook') || [];
+                    let eItem = errorBook.find(e => e.word === word);
+                    if (eItem) {
+                        eItem.reviewLevel = 0;
+                        eItem.lastReviewDate = todayStr;
+                        eItem.failCount = (eItem.failCount || 0) + 1;
+                    } else {
+                        errorBook.push({ word: word, joinDate: todayStr, lastReviewDate: todayStr, reviewLevel: 0, failCount: 1, correctCount: 0 });
+                    }
+                    wx.setStorageSync('errorBook', errorBook);
+
+                    // 加入今日错题
+                    let errorToday = wx.getStorageSync('errorToday') || [];
+                    if (!errorToday.includes(word)) {
+                        errorToday.push(word);
+                        wx.setStorageSync('errorToday', errorToday);
+                    }
+
+                    // UI 提示 & 推入队尾重练
+                    if (activeWord.failAttempt > 1) {
+                        this.elements.hintDisplay.textContent = word;
+                        this.elements.hintDisplay.style.display = 'block';
+                        setTimeout(() => { this.elements.hintDisplay.style.display = 'none'; }, 2000);
+                    } else {
+                        wx.showToast({title: '拼写错误', icon: 'error', duration: 800});
+                    }
+
+                    this.elements.inputField.value = '';
+                    
+                    // 推入队尾
+                    this.data.state.queue.push(activeWord);
+                    this.data.state.currentWord = null; // 置空触发重新抽取
+                    this.nextWord();
+                },
+                updateSpellingStats(word, isCorrect) {
+                    let stats = wx.getStorageSync('spellingStats') || {};
+                    if (!stats[word]) stats[word] = { correct: 0, wrong: 0 };
+                    if (isCorrect) stats[word].correct++; else stats[word].wrong++;
+                    wx.setStorageSync('spellingStats', stats);
+                },
+                travelWord() {
+                    if (!this.data.state || !this.data.state.currentWord) return;
+                    const word = this.data.state.currentWord.word;
+                    wx.setClipboardData({ data: word }); 
+                    window.location.href = `eudic://dict/${encodeURIComponent(word.trim())}`;
+                }
+            },
+
+            // =================================== PAGE 4: 已标记 ===================================
+            page4: {
+                data: { selectedWord: null },
                 elements: {
                     container: document.getElementById('markedWordsContainer'), noMarkedMsg: document.getElementById('noMarkedMessage'),
-                    actionContainer: document.getElementById('page3ActionContainer'), deleteBtn: document.getElementById('deleteMarkedBtn'), travelBtn: document.getElementById('travelMarkedBtn'),
+                    actionContainer: document.getElementById('page4ActionContainer'), deleteBtn: document.getElementById('deleteMarkedBtn'), travelBtn: document.getElementById('travelMarkedBtn'),
                     copyEmptyBtn: document.getElementById('copyEmptyMeaningBtn')
                 },
                 onLoad() { this.addEventListeners(); },
@@ -1487,39 +1136,22 @@
                     this.elements.travelBtn.addEventListener('click', () => this.travelSelectedWord());
                     this.elements.copyEmptyBtn.addEventListener('click', () => this.copyEmptyMeaningWords());
                 },
-                
-                // 新增：全局提取没有释义的单词到剪贴板
                 copyEmptyMeaningWords() {
                     const allCards = wx.getStorageSync('myCards') || [];
-                    const emptyWords = allCards
-                        .filter(card => !card.meaning || card.meaning.trim() === '')
-                        .map(card => card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n'));
-                        
-                    if (emptyWords.length === 0) {
-                        wx.showToast({ title: '太棒了，没有空释义单词！', icon: 'info' });
-                        return;
-                    }
-                    
-                    const contentStr = emptyWords.join('\n');
-                    wx.setClipboardData({ 
-                        data: contentStr, 
-                        success: () => wx.showToast({ title: `成功复制 ${emptyWords.length} 个单词`, icon: 'success', duration: 1500 }) 
-                    });
+                    const emptyWords = allCards.filter(card => !card.meaning || card.meaning.trim() === '').map(card => card.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n'));
+                    if (emptyWords.length === 0) { wx.showToast({ title: '太棒了，没有空释义单词！', icon: 'info' }); return; }
+                    wx.setClipboardData({ data: emptyWords.join('\n'), success: () => wx.showToast({ title: `成功复制 ${emptyWords.length} 个单词`, icon: 'success', duration: 1500 }) });
                 },
-                
                 loadMarkedWords() {
                     let words = wx.getStorageSync('markedWords') || [];
-                    words = words.map(word => word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n'));
-
                     this.elements.container.innerHTML = ''; this.data.selectedWord = null; this.elements.actionContainer.style.display = 'none';
                     if (words.length === 0) { this.elements.noMarkedMsg.style.display = 'block'; }
                     else {
                         this.elements.noMarkedMsg.style.display = 'none';
                         words.forEach(word => {
-                            const wordEl = document.createElement('div'); 
-                            wordEl.className = 'marked-word'; 
-                            wordEl.innerHTML = word.replace(/\n/g, '<br>'); 
-                            wordEl.dataset.word = word.replace(/\n/g, NEWLINE_REPLACEMENT); 
+                            const wordEl = document.createElement('div'); wordEl.className = 'marked-word'; 
+                            wordEl.innerHTML = word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '<br>'); 
+                            wordEl.dataset.word = word; 
                             wordEl.addEventListener('click', (e) => this.selectWord(e)); 
                             this.elements.container.appendChild(wordEl);
                         });
@@ -1541,33 +1173,86 @@
                     wx.setStorageSync('markedWords', markedWords); wx.showToast({ title: '删除成功', icon: 'success', duration: 400 }); this.loadMarkedWords();
                 },
                 travelSelectedWord() {
-                    const word = this.data.selectedWord; 
-                    if (!word) { wx.showToast({ title: '没有选中内容', icon: 'error' }); return; }
-                    const actualWord = word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n');
-                    wx.setClipboardData({ data: actualWord }); 
-                    const encodedWord = encodeURIComponent(actualWord.trim()); 
-                    const url = `eudic://dict/${encodedWord}`; 
-                    window.location.href = url;
+                    if (!this.data.selectedWord) return;
+                    const actualWord = this.data.selectedWord.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n');
+                    wx.setClipboardData({ data: actualWord }); window.location.href = `eudic://dict/${encodeURIComponent(actualWord.trim())}`;
                 }
             },
+
+            // =================================== PAGE 5: 展馆 ===================================
+            page5: {
+                data: { selectedWord: null },
+                elements: {
+                    container: document.getElementById('galleryWordsContainer'), noMsg: document.getElementById('noGalleryMessage'),
+                    actionContainer: document.getElementById('page5ActionContainer'), deleteBtn: document.getElementById('deleteGalleryBtn'), clearBtn: document.getElementById('clearGalleryBtn'), travelBtn: document.getElementById('travelGalleryBtn')
+                },
+                onLoad() { this.addEventListeners(); },
+                onShow() { this.loadGalleryWords(); },
+                addEventListeners() {
+                    this.elements.deleteBtn.addEventListener('click', () => this.deleteSelectedWord());
+                    this.elements.clearBtn.addEventListener('click', () => this.clearAll());
+                    this.elements.travelBtn.addEventListener('click', () => this.travelSelectedWord());
+                },
+                loadGalleryWords() {
+                    let errorBook = wx.getStorageSync('errorBook') || [];
+                    this.elements.container.innerHTML = ''; this.data.selectedWord = null; this.elements.actionContainer.style.display = 'none';
+                    if (errorBook.length === 0) { this.elements.noMsg.style.display = 'block'; }
+                    else {
+                        this.elements.noMsg.style.display = 'none';
+                        errorBook.forEach(item => {
+                            const wordEl = document.createElement('div'); wordEl.className = 'gallery-word'; 
+                            wordEl.innerHTML = item.word.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '<br>'); 
+                            wordEl.dataset.word = item.word; 
+                            wordEl.addEventListener('click', (e) => this.selectWord(e)); 
+                            this.elements.container.appendChild(wordEl);
+                        });
+                    }
+                },
+                selectWord(e) {
+                    const word = e.currentTarget.dataset.word; 
+                    if (this.data.selectedWord === word) {
+                        this.data.selectedWord = null; e.currentTarget.classList.remove('selected'); this.elements.actionContainer.style.display = 'none';
+                    } else {
+                        if (this.data.selectedWord) { const prevSelected = this.elements.container.querySelector('.selected'); if (prevSelected) prevSelected.classList.remove('selected'); }
+                        this.data.selectedWord = word; e.currentTarget.classList.add('selected'); this.elements.actionContainer.style.display = 'flex';
+                    }
+                },
+                deleteSelectedWord() {
+                    if (!this.data.selectedWord) return;
+                    let errorBook = wx.getStorageSync('errorBook') || []; 
+                    errorBook = errorBook.filter(w => w.word !== this.data.selectedWord); 
+                    wx.setStorageSync('errorBook', errorBook); wx.showToast({ title: '删除成功', icon: 'success', duration: 400 }); this.loadGalleryWords();
+                },
+                clearAll() {
+                    wx.showModal({
+                        title: '清空确认',
+                        content: '确认清空整个错题本吗？',
+                        success: (res) => {
+                            if (res.confirm) {
+                                wx.setStorageSync('errorBook', []);
+                                wx.showToast({title: '已清空', icon: 'success'});
+                                this.loadGalleryWords();
+                            }
+                        }
+                    });
+                },
+                travelSelectedWord() {
+                    if (!this.data.selectedWord) return;
+                    const actualWord = this.data.selectedWord.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n');
+                    wx.setClipboardData({ data: actualWord }); window.location.href = `eudic://dict/${encodeURIComponent(actualWord.trim())}`;
+                }
+            }
         };
 
         // --- Initialize App ---
         Object.values(app).forEach(pageModule => { if(typeof pageModule.onLoad === 'function') pageModule.onLoad(); });
+        app.globalInit();
         navigateTo('page1');
     });
     </script>
     <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker registered: ', registration);
-                })
-                .catch(error => {
-                    console.error('Service Worker registration failed: ', error);
-                });
-        });
+        window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(()=>{}); });
     }
     </script>
 </body>
