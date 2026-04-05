@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vocab-app-cache-v1.11'; // 更新版本号！
+const CACHE_NAME = 'vocab-app-cache-v1.12'; // 更新版本号！
 const urlsToCache = [
   './',
   './index.html',
