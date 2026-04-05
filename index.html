@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.16';</script>
+    <script>const APP_VERSION = 'v1.17';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -982,13 +982,19 @@
                                     if (state.roundErrors.length !== prevLen) { modified = true; }
                                 }
                                 if (state.currentWord && state.currentWord.word === wordToDelete) {
-                                    state.currentWord = null; modified = true;
+                                    state.currentWord = null; 
+                                    state.totalM -= 1;
+                                    modified = true;
                                 }
                                 if (modified) {
                                     wx.setStorageSync(key, state);
                                     if (this.getStorageKey() === key && this.data.state) {
                                         this.data.state = state;
-                                        if (!state.currentWord) this.nextWord(); else this.updateProgressUI();
+                                        if (!state.currentWord) {
+                                            this.nextWord(); 
+                                        } else {
+                                            this.updateProgressUI();
+                                        }
                                     }
                                 }
                             }
@@ -1015,7 +1021,15 @@
                 },
                 restartCurrentMode() {
                     if (!this.data.activeMode) { wx.showToast({title: '请先选择模式', icon:'none'}); return; }
-                    this.initNewQueue();
+                    wx.showModal({
+                        title: '确认重置',
+                        content: '确认要重新开始本轮拼写吗？进度将重置。',
+                        success: (res) => {
+                            if (res.confirm) {
+                                this.initNewQueue();
+                            }
+                        }
+                    });
                 },
                 initNewQueue() {
                     let baseList = [];
@@ -1183,8 +1197,16 @@
                         return;
                     }
                     const wordToDelete = this.data.state.currentWord.word;
-                    app.clearWordSpellingPlan(wordToDelete);
-                    wx.showToast({title: '已删除拼写计划', icon: 'success'});
+                    wx.showModal({
+                        title: '确认删除',
+                        content: `是否删除 ${wordToDelete}？`,
+                        success: (res) => {
+                            if (res.confirm) {
+                                app.clearWordSpellingPlan(wordToDelete);
+                                wx.showToast({title: '已删除并更新进度', icon: 'success'});
+                            }
+                        }
+                    });
                 },
                 travelWord() {
                     if (!this.data.state || !this.data.state.currentWord) return;
