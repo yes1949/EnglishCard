@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.14';</script>
+    <script>const APP_VERSION = 'v1.15';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -59,7 +59,7 @@
         .word-count { position: absolute; top: -8px; right: -8px; font-size: 2.67vw; color: #999; border-radius: 50%; width: 4.8vw; height: 4.8vw; display: flex; align-items: center; justify-content: center; box-sizing: border-box; z-index: 3; }
         
         .filter-section { width: 50%; margin: 0.5vw auto 0.5vw auto; padding: 0; background-color: transparent; box-shadow: none; display: flex; flex-wrap: nowrap; justify-content: center; gap: 2.5vw; box-sizing: border-box; }
-        .filter-dot { width: 7vw; height: 7vw; line-height: 7vw; border-radius: 50%; background-color: #eee; color: #555; font-size: 3.2vw; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); user-select: none; flex: 0 0 calc((100% - 3 * 2.5vw) / 4); max-width: calc((100% - 3 * 2.5vw) / 4); }
+        .filter-dot { width: 7vw; height: 7vw; line-height: 7vw; border-radius: 50%; background-color: #eee; color: #555; font-size: 3.2vw; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); user-select: none; flex: 0 0 calc((100% - 2 * 2.5vw) / 3); max-width: calc((100% - 2 * 2.5vw) / 3); }
         .filter-dot.selected { background-color: #eee; color: white; transform: scale(1.1); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
         .progress-display { font-size: 3.73vw; color: #666; text-align: center; margin-top: 0.5vw; min-height: 20px; user-select: text; }
 
@@ -83,9 +83,9 @@
 
         /* --- 页面3 (回顾) --- */
         #page3 { align-items: center; justify-content: flex-start; padding-top: 100px; gap: 20px;}
-        .spell-top-bar { display: flex; width: 100%; gap: 10px; justify-content: space-between; }
-        .spell-select-btn { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; outline: none; font-size: 14px; }
-        .spell-btn-top { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; font-size: 14px;}
+        .spell-top-bar { display: flex; width: 100%; gap: 5px; justify-content: space-between; }
+        .spell-select-btn { flex: 1.2; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; outline: none; font-size: 13px; }
+        .spell-btn-top { flex: 1; height: 40px; background-color: #eee; border: none; border-radius: 20px; font-weight: bold; color: #333; cursor: pointer; font-size: 13px; padding: 0 2px;}
         .spell-btn-top.active, .spell-select-btn.active { background-color: #007AFF; color: #fff;}
         .spell-meaning-area { width: 100%; min-height: 40px; text-align: center; font-size: 16px; color: #555; word-wrap: break-word; padding: 10px; box-sizing: border-box; transition: color 0.3s;}
         .meaning-red { color: #e74c3c !important; font-weight: bold; } /* 错题回顾阶段特殊样式 */
@@ -94,8 +94,8 @@
         .spell-input-line:focus { border-bottom-color: #007AFF; }
         .spell-progress { width: 100%; text-align: center; font-size: 14px; color: #aaa; margin-top: 5px; }
         .spell-progress-wrong { color: #e74c3c; font-weight: bold; margin-left: 10px; font-size: 16px;}
-        .spell-bottom-bar { display: flex; width: 100%; gap: 15px; margin-top: 30px; }
-        .spell-btn-bot { flex: 1; height: 45px; background-color: #f0f0f0; border: none; border-radius: 25px; font-weight: bold; color: #333; cursor: pointer; }
+        .spell-bottom-bar { display: flex; width: 100%; gap: 10px; margin-top: 30px; }
+        .spell-btn-bot { flex: 1; height: 45px; background-color: #f0f0f0; border: none; border-radius: 25px; font-weight: bold; color: #333; cursor: pointer; font-size: 14px; padding: 0 5px;}
         
         /* --- 页面4 (已标记) --- */
         #page4 { justify-content: flex-start; align-items: center; }
@@ -180,7 +180,8 @@
                 <option value="" disabled selected>选择</option>
             </select>
             <button id="spellReviewBtn" class="spell-btn-top">复习 (0)</button>
-            <button id="spellErrorBtn" class="spell-btn-top">错题</button>
+            <button id="spellAllErrorBtn" class="spell-btn-top">AllError</button>
+            <button id="spellTodayBtn" class="spell-btn-top">Today</button>
         </div>
         <div id="spellMeaningDisplay" class="spell-meaning-area">请选择上方的模式开始拼写</div>
         <div id="spellHintDisplay" class="spell-hint-area"></div>
@@ -191,6 +192,7 @@
             <span id="spellProgressJ" class="spell-progress-wrong">0</span>
         </div>
         <div class="spell-bottom-bar">
+            <button id="spellDeleteBtnPage3" class="spell-btn-bot" style="background-color: #f44336; color: white;">删除</button>
             <button id="spellRestartBtn" class="spell-btn-bot">重来</button>
             <button id="copyEmptyMeaningBtnPage3" class="spell-btn-bot">无义</button>
             <button id="spellTravelBtnPage3" class="spell-btn-bot">穿越</button>
@@ -349,14 +351,33 @@
                 const reviewBtn = document.getElementById('spellReviewBtn');
                 if(reviewBtn) reviewBtn.textContent = `复习 (${reviewToday.length})`;
             },
+            
+            clearWordSpellingPlan(wordToDelete) {
+                let errorBook = wx.getStorageSync('errorBook') || [];
+                errorBook = errorBook.filter(e => e.word !== wordToDelete);
+                wx.setStorageSync('errorBook', errorBook);
+
+                let reviewToday = wx.getStorageSync('reviewToday') || [];
+                reviewToday = reviewToday.filter(w => w !== wordToDelete);
+                wx.setStorageSync('reviewToday', reviewToday);
+
+                let errorToday = wx.getStorageSync('errorToday') || [];
+                errorToday = errorToday.filter(w => w !== wordToDelete);
+                wx.setStorageSync('errorToday', errorToday);
+
+                this.globalInit(); // 更新UI计数
+
+                if (app.page3 && typeof app.page3.removeWordFromState === 'function') {
+                    app.page3.removeWordFromState(wordToDelete);
+                }
+            },
 
             // =================================== PAGE 1: 抽卡 ===================================
             page1: {
                 data: { 
                     displayContent: '', currentIndex: -1, cardCount: 0, swipeCount: 0, todaySwipeCount: 0,
                     currentMode: 'A',
-                    i: 0, j: 0, k: 0, allword: [], allword1: [], 
-                    x: 0, n: 0, m: 0, todayword: [], todayword1: [], 
+                    allword: [], x: 0, n: 0, m: 0, todayword: [], todayword1: [], 
                     y: 0, z: 0, p: 0, todayNewWord: [], todayNewWord1: [], 
                 },
                 elements: {
@@ -364,7 +385,7 @@
                     displayContent: document.getElementById('displayContent'), confirmDialog: document.getElementById('confirmDialog'),
                     pastdayFilterSection: document.getElementById('pastdayFilterSection'), progressDisplay: document.getElementById('progressDisplay') 
                 },
-                filterOptions: ['A', '0', '1', '-1'], 
+                filterOptions: ['A', '1', '-1'], 
                 TODAY_PASTDAYS_FILTER: [0, 1, 4, 7, 15, 30, 60, 90, 120],
 
                 onLoad() { 
@@ -442,18 +463,16 @@
                         wx.setStorageSync('todayword', this.data.todayword);
                         wx.setStorageSync('todayNewWord', this.data.todayNewWord); 
 
-                        this.data.i = 0; this.data.j = 0; this.data.k = 0;
                         this.data.x = 0; this.data.n = 0; this.data.m = 0;
                         this.data.y = 0; this.data.z = 0; this.data.p = 0; 
 
-                        this.data.allword1 = []; this.data.todayword1 = []; this.data.todayNewWord1 = []; 
+                        this.data.todayword1 = []; this.data.todayNewWord1 = []; 
                         this.saveProgress(); 
                         wx.setStorageSync('todaySwipeData', { date: today, count: 0 });
                     } else {
                         this.data.allword = [...cards];
                         this.data.todayword = cards.filter(card => this.TODAY_PASTDAYS_FILTER.includes(card.pastday));
                         this.data.todayNewWord = cards.filter(card => card.pastday === 0); 
-                        this.data.allword1 = wx.getStorageSync('allword1') || [];
                         this.data.todayword1 = wx.getStorageSync('todayword1') || [];
                         this.data.todayNewWord1 = wx.getStorageSync('todayNewWord1') || []; 
                     }
@@ -462,7 +481,6 @@
                     const savedProgress = wx.getStorageSync('progressData') || {};
                     const today = new Date().toLocaleDateString('en-CA');
                     if (savedProgress.date === today) {
-                        this.data.i = savedProgress.i || 0; this.data.j = savedProgress.j || 0; this.data.k = savedProgress.k || 0;
                         this.data.x = savedProgress.x || 0; this.data.n = savedProgress.n || 0; this.data.m = savedProgress.m || 0;
                         this.data.y = savedProgress.y || 0; this.data.z = savedProgress.z || 0; this.data.p = savedProgress.p || 0;
                         this.data.currentMode = savedProgress.currentMode || 'A';
@@ -473,12 +491,10 @@
                     const today = new Date().toLocaleDateString('en-CA');
                     const progressData = {
                         date: today, currentMode: this.data.currentMode,
-                        i: this.data.i, j: this.data.j, k: this.data.k,
                         x: this.data.x, n: this.data.n, m: this.data.m,
                         y: this.data.y, z: this.data.z, p: this.data.p,
                     };
                     wx.setStorageSync('progressData', progressData);
-                    wx.setStorageSync('allword1', this.data.allword1);
                     wx.setStorageSync('todayword1', this.data.todayword1);
                     wx.setStorageSync('todayNewWord1', this.data.todayNewWord1); 
                 },
@@ -495,12 +511,7 @@
                 },
                 updateProgressDisplay() {
                     let displayString = '';
-                    if (this.data.currentMode === '0') {
-                        if (this.data.j > 0 || (this.data.allword.length > 0 && this.data.k === 0 && this.data.i === 0)) {
-                            let currentJ = this.data.j > 0 ? this.data.j : this.data.allword.length;
-                            displayString = `${currentJ - this.data.allword1.length}-${currentJ}-${this.data.k}`; 
-                        }
-                    } else if (this.data.currentMode === '1') {
+                    if (this.data.currentMode === '1') {
                         if (this.data.n > 0 || (this.data.todayword.length > 0 && this.data.m === 0 && this.data.x === 0)) {
                             let currentN = this.data.n > 0 ? this.data.n : this.data.todayword.length;
                             displayString = `${currentN - this.data.todayword1.length}-${currentN}-${this.data.m}`; 
@@ -535,14 +546,6 @@
                     if (this.data.currentMode === 'A') {
                         currentCardsPool = [...this.data.allword]; 
                         if (currentCardsPool.length > 0) { selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length); selectedCard = currentCardsPool[selectedCardIndexInPool]; }
-                    } else if (this.data.currentMode === '0') {
-                        if (this.data.allword1.length === 0) {
-                            this.data.allword1 = [...this.data.allword];
-                            if (this.data.allword1.length === 0) { this._handleEmptyPool(isUserAction); return; }
-                            this.data.j = this.data.allword.length; this.data.i = 0; this.data.k++; 
-                        }
-                        currentCardsPool = this.data.allword1; selectedCardIndexInPool = Math.floor(Math.random() * currentCardsPool.length); selectedCard = currentCardsPool[selectedCardIndexInPool];
-                        if (isUserAction && selectedCard) { this.data.allword1.splice(selectedCardIndexInPool, 1); this.data.i = this.data.j - this.data.allword1.length; }
                     } else if (this.data.currentMode === '1') {
                         if (this.data.todayword1.length === 0) {
                             this.data.todayword1 = [...this.data.todayword];
@@ -598,13 +601,11 @@
                         this.data.allword = [...myCards]; this.data.todayword = myCards.filter(card => this.TODAY_PASTDAYS_FILTER.includes(card.pastday)); this.data.todayNewWord = myCards.filter(card => card.pastday === 0); 
                         wx.setStorageSync('allword', this.data.allword); wx.setStorageSync('todayword', this.data.todayword); wx.setStorageSync('todayNewWord', this.data.todayNewWord); 
 
-                        this.data.allword1 = this.data.allword1.filter(card => card.word !== deletedWord);
                         this.data.todayword1 = this.data.todayword1.filter(card => card.word !== deletedWord);
                         this.data.todayNewWord1 = this.data.todayNewWord1.filter(card => card.word !== deletedWord);
                         
-                        this.data.j = this.data.allword.length; this.data.n = this.data.todayword.length; this.data.z = this.data.todayNewWord.length; 
+                        this.data.n = this.data.todayword.length; this.data.z = this.data.todayNewWord.length; 
 
-                        if (this.data.currentMode === '0') { this.data.i = this.data.j - this.data.allword1.length; if (this.data.allword1.length === 0 && this.data.j > 0) { this.data.k++; this.data.allword1 = [...this.data.allword]; this.data.i = 0; } else if (this.data.allword1.length === 0 && this.data.j === 0) { this.data.i = 0; } }
                         if (this.data.currentMode === '1') { this.data.x = this.data.n - this.data.todayword1.length; if (this.data.todayword1.length === 0 && this.data.n > 0) { this.data.m++; this.data.todayword1 = [...this.data.todayword]; this.data.x = 0; } else if (this.data.todayword1.length === 0 && this.data.n === 0) { this.data.x = 0; } }
                         if (this.data.currentMode === '-1') { this.data.y = this.data.z - this.data.todayNewWord1.length; if (this.data.todayNewWord1.length === 0 && this.data.z > 0) { this.data.p++; this.data.todayNewWord1 = [...this.data.todayNewWord]; this.data.y = 0; } else if (this.data.todayNewWord1.length === 0 && this.data.z === 0) { this.data.y = 0; } }
 
@@ -612,11 +613,7 @@
                         let wordCounts = wx.getStorageSync('wordCounts') || {};
                         if (wordCounts[deletedWord]) { delete wordCounts[deletedWord]; wx.setStorageSync('wordCounts', wordCounts); }
                         
-                        let errorBook = wx.getStorageSync('errorBook') || [];
-                        errorBook = errorBook.filter(e => e.word !== deletedWord);
-                        wx.setStorageSync('errorBook', errorBook);
-                        
-                        if (app.page3 && typeof app.page3.removeWordFromState === 'function') app.page3.removeWordFromState(deletedWord);
+                        app.clearWordSpellingPlan(deletedWord);
 
                         wx.showToast({ title: '删除成功', icon: 'success' }); 
                         this.getRandomContent(false); 
@@ -716,14 +713,12 @@
                         app.page1.data.todayNewWord = myCards.filter(card => card.pastday === 0);
                         wx.setStorageSync('allword', app.page1.data.allword); wx.setStorageSync('todayword', app.page1.data.todayword); wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
 
-                        app.page1.data.allword1 = app.page1.data.allword1.filter(c => c.word !== wordToDelete);
                         app.page1.data.todayword1 = app.page1.data.todayword1.filter(c => c.word !== wordToDelete);
                         app.page1.data.todayNewWord1 = app.page1.data.todayNewWord1.filter(c => c.word !== wordToDelete);
 
-                        app.page1.data.j = app.page1.data.allword.length; app.page1.data.n = app.page1.data.todayword.length; app.page1.data.z = app.page1.data.todayNewWord.length;
+                        app.page1.data.n = app.page1.data.todayword.length; app.page1.data.z = app.page1.data.todayNewWord.length;
 
-                        if(app.page1.data.currentMode === '0') app.page1.data.i = app.page1.data.j - app.page1.data.allword1.length;
-                        else if(app.page1.data.currentMode === '1') app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
+                        if(app.page1.data.currentMode === '1') app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
                         else if(app.page1.data.currentMode === '-1') app.page1.data.y = app.page1.data.z - app.page1.data.todayNewWord1.length;
 
                         app.page1.saveProgress();
@@ -731,13 +726,7 @@
                         let wordCounts = wx.getStorageSync('wordCounts') || {};
                         if (wordCounts[wordToDelete]) { delete wordCounts[wordToDelete]; wx.setStorageSync('wordCounts', wordCounts); }
                         
-                        let errorBook = wx.getStorageSync('errorBook') || [];
-                        errorBook = errorBook.filter(e => e.word !== wordToDelete);
-                        wx.setStorageSync('errorBook', errorBook);
-                        
-                        if (app.page3 && typeof app.page3.removeWordFromState === 'function') {
-                            app.page3.removeWordFromState(wordToDelete);
-                        }
+                        app.clearWordSpellingPlan(wordToDelete);
 
                         wx.showToast({ title: '删除成功', icon: 'success' }); app.page1.updateStatistics();
                         if (app.page1.data.displayContent === wordToDelete.replace(new RegExp(NEWLINE_REPLACEMENT, 'g'), '\n')) app.page1.getRandomContent(false);
@@ -802,30 +791,26 @@
 
                         if (forceUpdatedWordsList.length > 0) {
                             forceUpdatedWordsList.forEach(word => {
-                                app.page1.data.allword1 = app.page1.data.allword1.filter(c => c.word !== word);
                                 app.page1.data.todayword1 = app.page1.data.todayword1.filter(c => c.word !== word);
                                 app.page1.data.todayNewWord1 = app.page1.data.todayNewWord1.filter(c => c.word !== word);
                             });
                         }
                         if (meaningUpdatedWordsList.length > 0) {
                             meaningUpdatedWordsList.forEach(updateItem => {
-                                let aw1 = app.page1.data.allword1.find(c => c.word === updateItem.word); if (aw1) aw1.meaning = updateItem.meaning;
                                 let tw1 = app.page1.data.todayword1.find(c => c.word === updateItem.word); if (tw1) tw1.meaning = updateItem.meaning;
                                 let tnw1 = app.page1.data.todayNewWord1.find(c => c.word === updateItem.word); if (tnw1) tnw1.meaning = updateItem.meaning;
                             });
                         }
                         uniqueNewCards.forEach(card => {
-                            if (!app.page1.data.allword1.some(c => c.word === card.word)) app.page1.data.allword1.push(card);
                             if (app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday) && !app.page1.data.todayword1.some(c => c.word === card.word)) app.page1.data.todayword1.push(card);
                             if (card.pastday === 0 && !app.page1.data.todayNewWord1.some(c => c.word === card.word)) app.page1.data.todayNewWord1.push(card);
                         });
 
-                        app.page1.data.j = app.page1.data.allword.length; app.page1.data.n = app.page1.data.todayword.length; app.page1.data.z = app.page1.data.todayNewWord.length;
-                        if (app.page1.data.k === 0 && app.page1.data.allword1.length > 0) app.page1.data.k = 1;
+                        app.page1.data.n = app.page1.data.todayword.length; app.page1.data.z = app.page1.data.todayNewWord.length;
                         if (app.page1.data.m === 0 && app.page1.data.todayword1.length > 0) app.page1.data.m = 1;
                         if (app.page1.data.p === 0 && app.page1.data.todayNewWord1.length > 0) app.page1.data.p = 1;
-                        if (app.page1.data.currentMode === '0') app.page1.data.i = app.page1.data.j - app.page1.data.allword1.length;
-                        else if (app.page1.data.currentMode === '1') app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
+                        
+                        if (app.page1.data.currentMode === '1') app.page1.data.x = app.page1.data.n - app.page1.data.todayword1.length;
                         else if (app.page1.data.currentMode === '-1') app.page1.data.y = app.page1.data.z - app.page1.data.todayNewWord1.length;
                         
                         app.page1.saveProgress(); 
@@ -845,7 +830,6 @@
                 copyAllContents() {
                     let cardsToCopy = []; const currentMode = app.page1.data.currentMode;
                     if (currentMode === 'A') cardsToCopy = wx.getStorageSync('myCards') || [];
-                    else if (currentMode === '0') cardsToCopy = app.page1.data.allword; 
                     else if (currentMode === '1') cardsToCopy = app.page1.data.todayword; 
                     else if (currentMode === '-1') cardsToCopy = app.page1.data.todayNewWord; 
 
@@ -878,8 +862,7 @@
                             app.page1.data.todayNewWord = importedData.filter(card => card.pastday === 0);
                             wx.setStorageSync('allword', app.page1.data.allword); wx.setStorageSync('todayword', app.page1.data.todayword); wx.setStorageSync('todayNewWord', app.page1.data.todayNewWord);
                             
-                            app.page1.data.allword1 = []; app.page1.data.todayword1 = []; app.page1.data.todayNewWord1 = [];
-                            app.page1.data.i = 0; app.page1.data.j = app.page1.data.allword.length; app.page1.data.k = 0;
+                            app.page1.data.todayword1 = []; app.page1.data.todayNewWord1 = [];
                             app.page1.data.x = 0; app.page1.data.n = app.page1.data.todayword.length; app.page1.data.m = 0;
                             app.page1.data.y = 0; app.page1.data.z = app.page1.data.todayNewWord.length; app.page1.data.p = 0;
                             
@@ -902,13 +885,15 @@
                 elements: {
                     selectBtn: document.getElementById('spellSelectBtn'),
                     reviewBtn: document.getElementById('spellReviewBtn'),
-                    errorBtn: document.getElementById('spellErrorBtn'),
+                    allErrorBtn: document.getElementById('spellAllErrorBtn'),
+                    todayBtn: document.getElementById('spellTodayBtn'),
                     meaningDisplay: document.getElementById('spellMeaningDisplay'),
                     hintDisplay: document.getElementById('spellHintDisplay'),
                     inputField: document.getElementById('spellInputField'),
                     progressDisplay: document.getElementById('spellProgressDisplay'),
                     progressNM: document.getElementById('spellProgressNM'),
                     progressJ: document.getElementById('spellProgressJ'),
+                    deleteBtn: document.getElementById('spellDeleteBtnPage3'),
                     restartBtn: document.getElementById('spellRestartBtn'),
                     copyEmptyBtn: document.getElementById('copyEmptyMeaningBtnPage3'),
                     travelBtn: document.getElementById('spellTravelBtnPage3')
@@ -921,10 +906,12 @@
                 },
                 addEventListeners() {
                     this.elements.selectBtn.addEventListener('change', (e) => { 
-                        this.switchMode('select', e.target.value); 
+                        this.switchMode('select', e.target.value, false); 
                     });
-                    this.elements.reviewBtn.addEventListener('click', () => this.switchMode('review', null));
-                    this.elements.errorBtn.addEventListener('click', () => this.switchMode('error', null));
+                    this.elements.reviewBtn.addEventListener('click', () => this.switchMode('review', null, false));
+                    this.elements.allErrorBtn.addEventListener('click', () => this.switchMode('allError', null, false));
+                    this.elements.todayBtn.addEventListener('click', () => this.switchMode('today', null, false));
+                    this.elements.deleteBtn.addEventListener('click', () => this.deleteCurrentWordSpellingPlan());
                     this.elements.restartBtn.addEventListener('click', () => this.restartCurrentMode());
                     this.elements.copyEmptyBtn.addEventListener('click', () => this.copyEmptyMeaningWords());
                     this.elements.travelBtn.addEventListener('click', () => this.travelWord());
@@ -936,15 +923,12 @@
                     const allCards = wx.getStorageSync('myCards') || [];
                     const todayword = allCards.filter(card => app.page1.TODAY_PASTDAYS_FILTER.includes(card.pastday));
                     const todayNewWord = allCards.filter(card => card.pastday === 0);
-                    const errorBook = wx.getStorageSync('errorBook') || [];
 
                     this.elements.selectBtn.innerHTML = `
                         <option value="" disabled ${!this.data.subMode ? 'selected' : ''}>选择</option>
                         <option value="A" ${this.data.subMode === 'A' ? 'selected' : ''}>A - ${allCards.length}</option>
-                        <option value="0" ${this.data.subMode === '0' ? 'selected' : ''}>0 - ${allCards.length}</option>
                         <option value="1" ${this.data.subMode === '1' ? 'selected' : ''}>1 - ${todayword.length}</option>
                         <option value="-1" ${this.data.subMode === '-1' ? 'selected' : ''}>-1 - ${todayNewWord.length}</option>
-                        <option value="E" ${this.data.subMode === 'E' ? 'selected' : ''}>E - ${errorBook.length}</option>
                     `;
                 },
                 getStorageKey() {
@@ -963,7 +947,7 @@
                     }
                 },
                 updateUINav() {
-                    [this.elements.selectBtn, this.elements.reviewBtn, this.elements.errorBtn].forEach(b => b.classList.remove('active'));
+                    [this.elements.selectBtn, this.elements.reviewBtn, this.elements.allErrorBtn, this.elements.todayBtn].forEach(b => b.classList.remove('active'));
                     if (this.data.activeMode === 'select') {
                         this.elements.selectBtn.classList.add('active');
                         this.elements.selectBtn.value = this.data.subMode || "";
@@ -972,8 +956,12 @@
                         this.elements.reviewBtn.classList.add('active');
                         this.elements.selectBtn.value = "";
                     }
-                    if (this.data.activeMode === 'error') {
-                        this.elements.errorBtn.classList.add('active');
+                    if (this.data.activeMode === 'allError') {
+                        this.elements.allErrorBtn.classList.add('active');
+                        this.elements.selectBtn.value = "";
+                    }
+                    if (this.data.activeMode === 'today') {
+                        this.elements.todayBtn.classList.add('active');
                         this.elements.selectBtn.value = "";
                     }
                 },
@@ -989,8 +977,9 @@
                                     if (state.queue.length !== len) { modified = true; state.totalM -= (len - state.queue.length); }
                                 }
                                 if (state.roundErrors) {
+                                    let prevLen = state.roundErrors.length;
                                     state.roundErrors = state.roundErrors.filter(w => w.word !== wordToDelete);
-                                    modified = true;
+                                    if (state.roundErrors.length !== prevLen) { modified = true; }
                                 }
                                 if (state.currentWord && state.currentWord.word === wordToDelete) {
                                     state.currentWord = null; modified = true;
@@ -1011,18 +1000,18 @@
                     this.data.subMode = subMode;
                     this.updateUINav();
                     
-                    const key = this.getStorageKey();
-                    let savedState = wx.getStorageSync(key);
-                    
-                    if (savedState && savedState.totalM > 0 && (savedState.currentWord || savedState.queue.length > 0 || savedState.roundErrors?.length > 0)) {
-                        this.data.state = savedState;
-                        if (!this.data.state.roundErrors) this.data.state.roundErrors = [];
-                        this.renderCurrentWord();
-                    } else if (!isResume) {
-                        this.initNewQueue();
-                    } else {
-                        this.setEmptyState('本模式暂无进度或已完成');
+                    if (isResume) {
+                        const key = this.getStorageKey();
+                        let savedState = wx.getStorageSync(key);
+                        if (savedState && savedState.totalM > 0 && (savedState.currentWord || savedState.queue.length > 0 || savedState.roundErrors?.length > 0)) {
+                            this.data.state = savedState;
+                            if (!this.data.state.roundErrors) this.data.state.roundErrors = [];
+                            this.renderCurrentWord();
+                            return;
+                        }
                     }
+                    
+                    this.initNewQueue();
                 },
                 restartCurrentMode() {
                     if (!this.data.activeMode) { wx.showToast({title: '请先选择模式', icon:'none'}); return; }
@@ -1034,17 +1023,15 @@
                     
                     if (this.data.activeMode === 'select') {
                         if (this.data.subMode === 'A') baseList = [...allCards];
-                        else if (this.data.subMode === '0') baseList = wx.getStorageSync('allword') || [];
                         else if (this.data.subMode === '1') baseList = wx.getStorageSync('todayword') || [];
                         else if (this.data.subMode === '-1') baseList = wx.getStorageSync('todayNewWord') || [];
-                        else if (this.data.subMode === 'E') {
-                            const errorBook = wx.getStorageSync('errorBook') || [];
-                            baseList = errorBook.map(e => allCards.find(c => c.word === e.word)).filter(Boolean);
-                        }
                     } else if (this.data.activeMode === 'review') {
                         const reviewToday = wx.getStorageSync('reviewToday') || [];
                         baseList = reviewToday.map(word => allCards.find(c => c.word === word)).filter(Boolean);
-                    } else if (this.data.activeMode === 'error') {
+                    } else if (this.data.activeMode === 'allError') {
+                        const errorBook = wx.getStorageSync('errorBook') || [];
+                        baseList = errorBook.map(e => allCards.find(c => c.word === e.word)).filter(Boolean);
+                    } else if (this.data.activeMode === 'today') {
                         const errorToday = wx.getStorageSync('errorToday') || [];
                         baseList = errorToday.map(word => allCards.find(c => c.word === word)).filter(Boolean);
                     }
@@ -1190,6 +1177,15 @@
                     if (isCorrect) stats[word].correct++; else stats[word].wrong++;
                     wx.setStorageSync('spellingStats', stats);
                 },
+                deleteCurrentWordSpellingPlan() {
+                    if (!this.data.state || !this.data.state.currentWord) {
+                        wx.showToast({title: '当前无单词', icon: 'none'});
+                        return;
+                    }
+                    const wordToDelete = this.data.state.currentWord.word;
+                    app.clearWordSpellingPlan(wordToDelete);
+                    wx.showToast({title: '已删除拼写计划', icon: 'success'});
+                },
                 travelWord() {
                     if (!this.data.state || !this.data.state.currentWord) return;
                     const word = this.data.state.currentWord.word;
@@ -1297,9 +1293,8 @@
                 },
                 deleteSelectedWord() {
                     if (!this.data.selectedWord) return;
-                    let errorBook = wx.getStorageSync('errorBook') || []; 
-                    errorBook = errorBook.filter(w => w.word !== this.data.selectedWord); 
-                    wx.setStorageSync('errorBook', errorBook); wx.showToast({ title: '删除成功', icon: 'success', duration: 400 }); this.loadGalleryWords();
+                    app.clearWordSpellingPlan(this.data.selectedWord);
+                    wx.showToast({ title: '删除成功', icon: 'success', duration: 400 }); this.loadGalleryWords();
                 },
                 clearAll() {
                     wx.showModal({
@@ -1308,6 +1303,9 @@
                         success: (res) => {
                             if (res.confirm) {
                                 wx.setStorageSync('errorBook', []);
+                                wx.setStorageSync('errorToday', []);
+                                wx.setStorageSync('reviewToday', []);
+                                app.globalInit();
                                 wx.showToast({title: '已清空', icon: 'success'});
                                 this.loadGalleryWords();
                             }
