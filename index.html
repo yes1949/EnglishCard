@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.12';</script>
+    <script>const APP_VERSION = 'v1.13';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -1130,7 +1130,7 @@
                     else this.handleWrongSpelling(correctWord);
                 },
                 handleCorrectSpelling(word) {
-                    wx.showToast({title: '正确', icon: 'success', duration: 500});
+                 
                     this.updateSpellingStats(word, true);
 
                     if (this.data.activeMode === 'review') {
@@ -1178,7 +1178,7 @@
                         this.elements.hintDisplay.style.visibility = 'visible';
                         setTimeout(() => { this.elements.hintDisplay.style.visibility = 'hidden'; }, 2000);
                     } else {
-                        wx.showToast({title: '拼写错误', icon: 'error', duration: 800});
+                        
                     }
 
                     this.elements.inputField.value = '';
