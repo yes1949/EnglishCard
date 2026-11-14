@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script>const APP_VERSION = 'v1.17';</script>
+    <script>const APP_VERSION = 'v1.18';</script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EC</title>
@@ -19,11 +19,11 @@
         
         .app-nav {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 80vw;
-            display: flex; justify-content: space-around; background-color: #ffffff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 5000; padding: 10px 0; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+            display: flex; justify-content: space-around; background-color: transparent; box-shadow: none;
+            z-index: 5000; padding: 15px 0 10px 0; 
         }
-        .nav-btn { background: none; border: none; padding: 10px 1vw; font-size: 14px; color: #666; font-weight: bold; cursor: pointer; border-radius: 20px; transition: 0.3s; flex: 1; text-align: center; white-space: nowrap;}
-        .nav-btn.active { background-color: #eee; color: #333; }
+        .nav-btn { background: transparent; border: none; padding: 10px 1vw; font-size: 14px; color: #888; font-weight: bold; cursor: pointer; transition: 0.3s; flex: 1; text-align: center; white-space: nowrap;}
+        .nav-btn.active { background-color: transparent; color: #333; font-size: 16px; transform: scale(1.1); }
 
         /* --- 通用组件 --- */
         .toast { position: fixed; bottom: calc(34.67vw + var(--safe-area-bottom) + 1.5cm); left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 2.67vw 5.33vw; border-radius: 3.2vw; font-size: 3.73vw; z-index: 9999; user-select: none; text-align: center; animation: toastFadeIn 0.3s ease; max-width: 85%; box-sizing: border-box; }
@@ -59,7 +59,7 @@
         .word-count { position: absolute; top: -8px; right: -8px; font-size: 2.67vw; color: #999; border-radius: 50%; width: 4.8vw; height: 4.8vw; display: flex; align-items: center; justify-content: center; box-sizing: border-box; z-index: 3; }
         
         .filter-section { width: 50%; margin: 0.5vw auto 0.5vw auto; padding: 0; background-color: transparent; box-shadow: none; display: flex; flex-wrap: nowrap; justify-content: center; gap: 2.5vw; box-sizing: border-box; }
-        .filter-dot { width: 7vw; height: 7vw; line-height: 7vw; border-radius: 50%; background-color: #eee; color: #555; font-size: 3.2vw; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); user-select: none; flex: 0 0 calc((100% - 2 * 2.5vw) / 3); max-width: calc((100% - 2 * 2.5vw) / 3); }
+        .filter-dot { width: 7vw; height: 7vw; line-height: 7vw; border-radius: 8px; background-color: #eee; color: #555; font-size: 3.2vw; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); user-select: none; flex: 0 0 calc((100% - 2 * 2.5vw) / 3); max-width: calc((100% - 2 * 2.5vw) / 3); }
         .filter-dot.selected { background-color: #eee; color: white; transform: scale(1.1); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
         .progress-display { font-size: 3.73vw; color: #666; text-align: center; margin-top: 0.5vw; min-height: 20px; user-select: text; }
 
@@ -511,7 +511,9 @@
                 },
                 updateProgressDisplay() {
                     let displayString = '';
-                    if (this.data.currentMode === '1') {
+                    if (this.data.currentMode === 'A') {
+                        displayString = `共 ${this.data.allword.length} 词`;
+                    } else if (this.data.currentMode === '1') {
                         if (this.data.n > 0 || (this.data.todayword.length > 0 && this.data.m === 0 && this.data.x === 0)) {
                             let currentN = this.data.n > 0 ? this.data.n : this.data.todayword.length;
                             displayString = `${currentN - this.data.todayword1.length}-${currentN}-${this.data.m}`; 
