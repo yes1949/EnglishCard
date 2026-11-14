@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ec-app-cache-v1.17';
+const CACHE_NAME = 'ec-app-cache-v1.18';
 const urlsToCache = [
   './',
   './index.html',
